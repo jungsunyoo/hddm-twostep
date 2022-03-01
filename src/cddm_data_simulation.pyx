@@ -359,145 +359,145 @@ def ddm(np.ndarray[float, ndim = 1] v, # drift by timestep 'delta_t'
                            'boundary_fun_type': 'constant',
                            'possible_choices': [0, 1]})
 
-# -------------------------------------------------------------------------------------------------
-# JY added on 2022-02-08 
-# Simulate (rt, choice) tuples from: THINK-ACT DDM -----------------------------------------------
-# Things newly added: 
-# 1. RLDDM components (learning, etc)
-# 2. Task design (reward, etc)
-# 3. Cost function: memoization coefficient
+# # -------------------------------------------------------------------------------------------------
+# # JY added on 2022-02-08 
+# # Simulate (rt, choice) tuples from: THINK-ACT DDM -----------------------------------------------
+# # Things newly added: 
+# # 1. RLDDM components (learning, etc)
+# # 2. Task design (reward, etc)
+# # 3. Cost function: memoization coefficient
 
 
-# Simplest algorithm
-# delete random comment
-# delete random comment 2
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
+# # Simplest algorithm
+# # delete random comment
+# # delete random comment 2
+# #@cython.boundscheck(False)
+# #@cython.wraparound(False)
 
-def rlddm_rtdp(np.ndarray[float, ndim = 1] v, # drift by timestep 'delta_t'
-        np.ndarray[float, ndim = 1] a, # boundary separation
-        np.ndarray[float, ndim = 1] z,  # between 0 and 1
-        np.ndarray[float, ndim = 1] t, # non-decision time
-        np.ndarray[float, ndim = 1] m, # memoization coefficient 
-        float s = 1, # noise sigma
-        float delta_t = 0.001, # timesteps fraction of seconds
-        float max_t = 20, # maximum rt allowed
-        int n_samples = 20000, # number of samples considered
-        int n_trials = 10,
-        ):
+# def rlddm_rtdp(np.ndarray[float, ndim = 1] v, # drift by timestep 'delta_t'
+#         np.ndarray[float, ndim = 1] a, # boundary separation
+#         np.ndarray[float, ndim = 1] z,  # between 0 and 1
+#         np.ndarray[float, ndim = 1] t, # non-decision time
+#         np.ndarray[float, ndim = 1] m, # memoization coefficient 
+#         float s = 1, # noise sigma
+#         float delta_t = 0.001, # timesteps fraction of seconds
+#         float max_t = 20, # maximum rt allowed
+#         int n_samples = 20000, # number of samples considered
+#         int n_trials = 10,
+#         ):
 
-    # Param views
-    cdef float[:] v_view = v
-    cdef float[:] a_view = a
-    cdef float[:] z_view = z
-    cdef float[:] t_view = t
-    # JY added on 2022-02-10
-    # memoization coefficient (1, 1-m ? )
-    cdef float[:] m_view = m
+#     # Param views
+#     cdef float[:] v_view = v
+#     cdef float[:] a_view = a
+#     cdef float[:] z_view = z
+#     cdef float[:] t_view = t
+#     # JY added on 2022-02-10
+#     # memoization coefficient (1, 1-m ? )
+#     cdef float[:] m_view = m
 
 
-    rts = np.zeros((n_samples, n_trials, 1), dtype = DTYPE)
-    choices = np.zeros((n_samples, n_trials, 1), dtype = np.intc)
-    cdef float[:, :, :] rts_view = rts
-    cdef int[:, :, :] choices_view = choices
+#     rts = np.zeros((n_samples, n_trials, 1), dtype = DTYPE)
+#     choices = np.zeros((n_samples, n_trials, 1), dtype = np.intc)
+#     cdef float[:, :, :] rts_view = rts
+#     cdef int[:, :, :] choices_view = choices
 
-    cdef float delta_t_sqrt = sqrt(delta_t)
-    cdef float sqrt_st = delta_t_sqrt * s
+#     cdef float delta_t_sqrt = sqrt(delta_t)
+#     cdef float sqrt_st = delta_t_sqrt * s
 
-    cdef float y, t_particle
+#     cdef float y, t_particle
 
-    #cdef int n
-    cdef Py_ssize_t n, k
-    cdef int m = 0
-    cdef int num_draws = int(max_t / delta_t + 1)
-    cdef float[:] gaussian_values = draw_gaussian(num_draws)
+#     #cdef int n
+#     cdef Py_ssize_t n, k
+#     cdef int m = 0
+#     cdef int num_draws = int(max_t / delta_t + 1)
+#     cdef float[:] gaussian_values = draw_gaussian(num_draws)
 
-    # JY added on 2022-02-10
-    cdef float cost = 0
-    cdef float total_cost=0
-    cdef float reward # could be 1 or 0 
-    # cdef ndarray memoize (remembering policy directly)!!! -> nstateC2 * action array / 1*2, 3*2, 6*2, 10*2  ? 
-    # The cost (spatial complexity?) of maintaining a memoized policy -> O(N^2)
+#     # JY added on 2022-02-10
+#     cdef float cost = 0
+#     cdef float total_cost=0
+#     cdef float reward # could be 1 or 0 
+#     # cdef ndarray memoize (remembering policy directly)!!! -> nstateC2 * action array / 1*2, 3*2, 6*2, 10*2  ? 
+#     # The cost (spatial complexity?) of maintaining a memoized policy -> O(N^2)
 
-    # The cost of constructing trees -> O(1) (constant?) or O(N) (because you have to search through your memory to construct the tree?)
+#     # The cost of constructing trees -> O(1) (constant?) or O(N) (because you have to search through your memory to construct the tree?)
 
-    ## cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
-    # cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-    # cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
-    cdef np.ndarray[double, ndim=2] memoize_policy = np.zeros((nstates * (nstates-1)/2, 2))
+#     ## cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
+#     # cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+#     # cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+#     cdef np.ndarray[double, ndim=2] memoize_policy = np.zeros((nstates * (nstates-1)/2, 2))
 
     
-    # convert cost into time???
-    # there are both temporal and spatial cost
-    # but previous studies only focus on temporal cost
-    # how to integrate these two? 
+#     # convert cost into time???
+#     # there are both temporal and spatial cost
+#     # but previous studies only focus on temporal cost
+#     # how to integrate these two? 
     
-    for k in range(n_trials):
-        # Loop over samples
-        for n in range(n_samples):
-            y = z_view[k] * a_view[k] # reset starting point
-            t_particle = 0.0 # reset time
+#     for k in range(n_trials):
+#         # Loop over samples
+#         for n in range(n_samples):
+#             y = z_view[k] * a_view[k] # reset starting point
+#             t_particle = 0.0 # reset time
 
 
-            # Decision tree: Q value improvement??? 
-            # Q = w*Qmb + (1-w)*Qmf; or just Q = Qmb
-            # cost <- 
+#             # Decision tree: Q value improvement??? 
+#             # Q = w*Qmb + (1-w)*Qmf; or just Q = Qmb
+#             # cost <- 
 
-            # Policy
-            # cost <- - N(N-1)/2 * (m-1)
+#             # Policy
+#             # cost <- - N(N-1)/2 * (m-1)
 
-            # probabiltically use either of the two options? 
-            # if rand > m: use decision tree; else: use policy
+#             # probabiltically use either of the two options? 
+#             # if rand > m: use decision tree; else: use policy
 
-            if np.random.rand() > m: 
-                # use decision tree
-                cost = nstates
-                Q = w*Qmb + (1-w)*Qmf #; or just Q = Qmb
-                # perform DDM / or just beta? 
-                # get outcome (actions and states) 
+#             if np.random.rand() > m: 
+#                 # use decision tree
+#                 cost = nstates
+#                 Q = w*Qmb + (1-w)*Qmf #; or just Q = Qmb
+#                 # perform DDM / or just beta? 
+#                 # get outcome (actions and states) 
 
                 
-            else: 
-                # use cached policy
+#             else: 
+#                 # use cached policy
 
-                # 
-
-
+#                 # 
 
 
 
 
-            # Random walker
-            while y <= a_view[k] and y >= 0 and t_particle <= max_t:
-                y += v_view[k] * delta_t + sqrt_st * gaussian_values[m] # update particle position
-                t_particle += delta_t
-                m += 1
-                if m == num_draws:
-                    gaussian_values = draw_gaussian(num_draws)
-                    m = 0
-
-            # Note that for purposes of consistency with Navarro and Fuss, 
-            # the choice corresponding the lower barrier is +1, higher barrier is -1
-            rts_view[n, k, 0] = t_particle + t_view[k] # store rt
-            if y < 0:
-                choices_view[n, k, 0] = 0 # store choice
-            else:
-                choices_view[n, k, 0] = 1 # store choice
 
 
-            total_cost = -reward + cost # takes into both reward and planning; maybe add a scaling factor? 
+#             # Random walker
+#             while y <= a_view[k] and y >= 0 and t_particle <= max_t:
+#                 y += v_view[k] * delta_t + sqrt_st * gaussian_values[m] # update particle position
+#                 t_particle += delta_t
+#                 m += 1
+#                 if m == num_draws:
+#                     gaussian_values = draw_gaussian(num_draws)
+#                     m = 0
+
+#             # Note that for purposes of consistency with Navarro and Fuss, 
+#             # the choice corresponding the lower barrier is +1, higher barrier is -1
+#             rts_view[n, k, 0] = t_particle + t_view[k] # store rt
+#             if y < 0:
+#                 choices_view[n, k, 0] = 0 # store choice
+#             else:
+#                 choices_view[n, k, 0] = 1 # store choice
+
+
+#             total_cost = -reward + cost # takes into both reward and planning; maybe add a scaling factor? 
         
-    return (cost, rts, choices, {'v': v,
-                           'a': a,
-                           'z': z,
-                           't': t,
-                           's': s,
-                           'delta_t': delta_t,
-                           'max_t': max_t,
-                           'n_samples': n_samples,
-                           'simulator': 'ddm',
-                           'boundary_fun_type': 'constant',
-                           'possible_choices': [0, 1]})
+#     return (cost, rts, choices, {'v': v,
+#                            'a': a,
+#                            'z': z,
+#                            't': t,
+#                            's': s,
+#                            'delta_t': delta_t,
+#                            'max_t': max_t,
+#                            'n_samples': n_samples,
+#                            'simulator': 'ddm',
+#                            'boundary_fun_type': 'constant',
+#                            'possible_choices': [0, 1]})
 
 # Simulate (rt, choice) tuples from: SIMPLE DDM -----------------------------------------------
 # Simplest algorithm

@@ -13,7 +13,7 @@ from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step, wiener_like_rlddm_2
 from collections import OrderedDict
 
 
-class HDDMrl(HDDM):
+class HDDMrl_crossval(HDDM):
     """HDDM model that can be used for two-armed bandit tasks."""
 
     # just 2-stage rlddm
@@ -63,7 +63,7 @@ class HDDMrl(HDDM):
 
         self.wfpt_rl_class = WienerRL
 
-        super(HDDMrl, self).__init__(*args, **kwargs)
+        super(HDDMrl_crossval, self).__init__(*args, **kwargs)
 
     def _create_stochastic_knodes(self, include):
         # params = ["t"]
