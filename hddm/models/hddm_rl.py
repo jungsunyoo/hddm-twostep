@@ -467,12 +467,14 @@ class HDDMrl(HDDM):
                     wfpt_parents['v_qval'] = 1.00
                     wfpt_parents["v1"] = knodes["v1_bottom"]
                     wfpt_parents["v2"] = 100.00
+                    wfpt_parents['v_interaction'] = 100.00
                     
                 # elif self.qval == 'mf':
                 else:
                     wfpt_parents['v_qval'] = 2.00
                     wfpt_parents["v1"] = 100.00
                     wfpt_parents["v2"] = knodes["v2_bottom"]
+                    wfpt_parents['v_interaction'] = 100.00
                     
 
             else:
@@ -509,10 +511,12 @@ class HDDMrl(HDDM):
                     wfpt_parents['z_qval'] = 1.00
                     wfpt_parents["z1"] = knodes["z1_bottom"]
                     wfpt_parents["z2"] = 100.00
+                    wfpt_paterns['z_interaction'] = 100.00
                 else:
                     wfpt_parents['z_qval'] = 2.00
                     wfpt_parents["z1"] = 100.00
                     wfpt_parents["z2"] = knodes["z2_bottom"]
+                    wfpt_paterns['z_interaction'] = 100.00
             else:
                 if self.z_interaction: 
                     wfpt_parents['z_interaction'] = knodes['z_interaction_bottom']
