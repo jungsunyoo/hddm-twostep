@@ -696,275 +696,275 @@ def gen_rand_rlddm_data(
     return all_data
 
 
-# JY added on 2022-02-17
+# # JY added on 2022-02-17
 
-# def wienerRL_like_2step_reg(x, v0, v1, v2, z0, z1, z2,lambda_, 
-# alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, qval,
-# two_stage, w, p_outlier=0): # regression ver2: bounded, a fixed to 1
-# 
-def gen_rand_rlddm_data_2step(
-    a=False,#float("nan"),
-    a_2=False,#float("nan"),
-    t=False,#float("nan"),
-    t_2=False,#float("nan"),
-    # v=False,#float("nan"), # v is represented as scaler
-    v0=False,#float("nan"),
-    v1=False,#float("nan"),
-    v2=False,#float("nan"),
-    z=False,#float("nan"),
-    z0=False,#float("nan"),
-    z1=False,#float("nan"),
-    z2=False,#float("nan"),
-    lambda_ = False,#float("nan"),
-    gamma=False,#float("nan"),
-    w=False,#float("nan"),
-    two_stage=False,#float("nan"), # whether two stage
-    qval=False,#float("nan"), # whether 
-    scaler,
-    alpha=False,#float("nan"),
-    alpha2=False,#float("nan"),
+# # def wienerRL_like_2step_reg(x, v0, v1, v2, z0, z1, z2,lambda_, 
+# # alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, qval,
+# # two_stage, w, p_outlier=0): # regression ver2: bounded, a fixed to 1
+# # 
+# def gen_rand_rlddm_data_2step(
+#     a=False,#float("nan"),
+#     a_2=False,#float("nan"),
+#     t=False,#float("nan"),
+#     t_2=False,#float("nan"),
+#     # v=False,#float("nan"), # v is represented as scaler
+#     v0=False,#float("nan"),
+#     v1=False,#float("nan"),
+#     v2=False,#float("nan"),
+#     z=False,#float("nan"),
+#     z0=False,#float("nan"),
+#     z1=False,#float("nan"),
+#     z2=False,#float("nan"),
+#     lambda_ = False,#float("nan"),
+#     gamma=False,#float("nan"),
+#     w=False,#float("nan"),
+#     two_stage=False,#float("nan"), # whether two stage
+#     qval=False,#float("nan"), # whether 
+#     scaler,
+#     alpha=False,#float("nan"),
+#     alpha2=False,#float("nan"),
 
-    nstates=False, 
+#     nstates=False, 
 
-    size=1,
-    p_upper=1,
-    p_lower=0,
-    z=0.5,
-    q_init=0.5,
-    pos_alpha=float("nan"),
-    subjs=1,
-    split_by=0,
-    mu_upper=1,
-    mu_lower=0,
-    sd_upper=0.1,
-    sd_lower=0.1,
-    binary_outcome=True,
-    uncertainty=False,
-):
-    all_data = []
-    tg = t
-    ag = a
-    alphag = alpha
-    pos_alphag = pos_alpha
-    scalerg = scaler
-    for s in range(0, subjs):
-        # if 
-        t = (
-            np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
-            if subjs > 1
-            else tg
-        )
+#     size=1,
+#     p_upper=1,
+#     p_lower=0,
+#     z=0.5,
+#     q_init=0.5,
+#     pos_alpha=float("nan"),
+#     subjs=1,
+#     split_by=0,
+#     mu_upper=1,
+#     mu_lower=0,
+#     sd_upper=0.1,
+#     sd_lower=0.1,
+#     binary_outcome=True,
+#     uncertainty=False,
+# ):
+#     all_data = []
+#     tg = t
+#     ag = a
+#     alphag = alpha
+#     pos_alphag = pos_alpha
+#     scalerg = scaler
+#     for s in range(0, subjs):
+#         # if 
+#         t = (
+#             np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+#             if subjs > 1
+#             else tg
+#         )
 
-        a = (
-            np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
-            if subjs > 1
-            else ag
-        )
+#         a = (
+#             np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+#             if subjs > 1
+#             else ag
+#         )
     
-        alpha = (
-            np.minimum(
-                np.minimum(
-                    np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
-                    alphag + alphag,
-                ),
-                1,
-            )
-            if subjs > 1
-            else alphag
-        )
+#         alpha = (
+#             np.minimum(
+#                 np.minimum(
+#                     np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
+#                     alphag + alphag,
+#                 ),
+#                 1,
+#             )
+#             if subjs > 1
+#             else alphag
+#         )
 
-        scaler = (
-            np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
-        )
+#         scaler = (
+#             np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
+#         )
 
-        if np.isnan(pos_alpha):
-            pos_alfa = alpha
-        else:
-            pos_alfa = (
-                np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
-                if subjs > 1
-                else pos_alphag
-            )
-        n = size
-        # q_up = np.tile([q_init], n)
-        # q_low = np.tile([q_init], n)
-        response = np.tile([0.5], n)
-        feedback = np.tile([0.5], n)
+#         if np.isnan(pos_alpha):
+#             pos_alfa = alpha
+#         else:
+#             pos_alfa = (
+#                 np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
+#                 if subjs > 1
+#                 else pos_alphag
+#             )
+#         n = size
+#         # q_up = np.tile([q_init], n)
+#         # q_low = np.tile([q_init], n)
+#         response = np.tile([0.5], n)
+#         feedback = np.tile([0.5], n)
 
-        # if two_stage: 
-        if t2: 
-            t2 = (
-                np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
-                if subjs > 1
-                else tg
-            )
-        if a2: 
-            a2 = (
-                np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
-                if subjs > 1
-                else ag
-            )
-        if alpha2:     
-            alpha2 = (
-                np.minimum(
-                    np.minimum(
-                        np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
-                        alphag + alphag,
-                    ),
-                    1,
-                )
-                if subjs > 1
-                else alphag
-            )
-        if scaler2: 
-            scaler2 = (
-                np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
-            )                  
-
-
-        # ???? come back later      
-        response2 = np.tile([0.5], n)
-        feedback2 = np.tile([0.5], n)
+#         # if two_stage: 
+#         if t2: 
+#             t2 = (
+#                 np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+#                 if subjs > 1
+#                 else tg
+#             )
+#         if a2: 
+#             a2 = (
+#                 np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+#                 if subjs > 1
+#                 else ag
+#             )
+#         if alpha2:     
+#             alpha2 = (
+#                 np.minimum(
+#                     np.minimum(
+#                         np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
+#                         alphag + alphag,
+#                     ),
+#                     1,
+#                 )
+#                 if subjs > 1
+#                 else alphag
+#             )
+#         if scaler2: 
+#             scaler2 = (
+#                 np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
+#             )                  
 
 
-        rt = np.tile([0], n)
+#         # ???? come back later      
+#         response2 = np.tile([0.5], n)
+#         feedback2 = np.tile([0.5], n)
 
-        # if binary_outcome:
-        #     rew_up = np.random.binomial(1, p_upper, n).astype(float)
-        #     rew_low = np.random.binomial(1, p_lower, n).astype(float)
-        # else:
-        #     rew_up = np.random.normal(mu_upper, sd_upper, n)
-        #     rew_low = np.random.normal(mu_lower, sd_lower, n)
-        rew_up = []
-        rew_low = []
-        q_up = []
-        q_low = []
 
-        # JY added for two step task 
-        for s in range(nstates):
-            q_up.append(np.tile([q_init], n))
-            q_low.append(np.tile([q_init], n))
-            if binary_outcome:
-                rew_up.append(np.random.binomial(1, p_upper[s], n).astype(float))
-                rew_low.append(np.random.binomial(1, p_lower[s], n).astype(float))
-            else:
-                rew_up.append(np.random.normal(mu_upper[s], sd_upper[s], n))
-                rew_low.append(np.random.normal(mu_lower[s], sd_lower[s], n))            
+#         rt = np.tile([0], n)
 
-        sim_drift = np.tile([0], n)
-        subj_idx = np.tile([s], n)
-        d = {
-            "q_up": q_up,
-            "q_low": q_low,
-            "sim_drift": sim_drift,
-            # "rew_up": rew_up,
-            # "rew_low": rew_low,
-            "response": response,
-            "rt": rt,
-            "feedback": feedback,
-            "subj_idx": subj_idx,
-            "split_by": split_by,
-            "trial": 1,
-        }
-        # JY added for two step
-        for s in range(nstates):
-            d['rew_up_s' + str(s)] = p_upper[s]
-            d['rew_low_s' + str(s)] = p_lower[s]
+#         # if binary_outcome:
+#         #     rew_up = np.random.binomial(1, p_upper, n).astype(float)
+#         #     rew_low = np.random.binomial(1, p_lower, n).astype(float)
+#         # else:
+#         #     rew_up = np.random.normal(mu_upper, sd_upper, n)
+#         #     rew_low = np.random.normal(mu_lower, sd_lower, n)
+#         rew_up = []
+#         rew_low = []
+#         q_up = []
+#         q_low = []
 
-        df = pd.DataFrame(data=d)
+#         # JY added for two step task 
+#         for s in range(nstates):
+#             q_up.append(np.tile([q_init], n))
+#             q_low.append(np.tile([q_init], n))
+#             if binary_outcome:
+#                 rew_up.append(np.random.binomial(1, p_upper[s], n).astype(float))
+#                 rew_low.append(np.random.binomial(1, p_lower[s], n).astype(float))
+#             else:
+#                 rew_up.append(np.random.normal(mu_upper[s], sd_upper[s], n))
+#                 rew_low.append(np.random.normal(mu_lower[s], sd_lower[s], n))            
 
-        # Not sure why this is needed
-        # df = df[
-        #     [
-        #         "q_up",
-        #         "q_low",
-        #         "sim_drift",
-        #         # "rew_up",
-        #         # "rew_low",
-        #         "response",
-        #         "rt",
-        #         "feedback",
-        #         "subj_idx",
-        #         "split_by",
-        #         "trial",
-        #     ]
-        # ]
-        df = df[df.columns]
+#         sim_drift = np.tile([0], n)
+#         subj_idx = np.tile([s], n)
+#         d = {
+#             "q_up": q_up,
+#             "q_low": q_low,
+#             "sim_drift": sim_drift,
+#             # "rew_up": rew_up,
+#             # "rew_low": rew_low,
+#             "response": response,
+#             "rt": rt,
+#             "feedback": feedback,
+#             "subj_idx": subj_idx,
+#             "split_by": split_by,
+#             "trial": 1,
+#         }
+#         # JY added for two step
+#         for s in range(nstates):
+#             d['rew_up_s' + str(s)] = p_upper[s]
+#             d['rew_low_s' + str(s)] = p_lower[s]
 
-        data, params = hddm.generate.gen_rand_data(
-            {"a": a, "t": t, "v": df.loc[0, "sim_drift"], "z": z}, subjs=1, size=1
-        )
-        df.loc[0, "response"] = data.response[0]
-        df.loc[0, "rt"] = data.rt[0]
-        if data.response[0] == 1.0:
-            df.loc[0, "feedback"] = df.loc[0, "rew_up"]
-            if df.loc[0, "feedback"] > df.loc[0, "q_up"]:
-                alfa = pos_alfa
-            else:
-                alfa = alpha
-        else:
-            df.loc[0, "feedback"] = df.loc[0, "rew_low"]
-            if df.loc[0, "feedback"] > df.loc[0, "q_low"]:
-                alfa = pos_alfa
-            else:
-                alfa = alpha
+#         df = pd.DataFrame(data=d)
 
-        for i in range(1, n): # loop over trials from here
-            df.loc[i, "trial"] = i + 1
-            df.loc[i, "q_up"] = (
-                df.loc[i - 1, "q_up"] * (1 - df.loc[i - 1, "response"])
-            ) + (
-                (df.loc[i - 1, "response"])
-                * (
-                    df.loc[i - 1, "q_up"]
-                    + (alfa * (df.loc[i - 1, "rew_up"] - df.loc[i - 1, "q_up"]))
-                )
-            )
-            df.loc[i, "q_low"] = (
-                df.loc[i - 1, "q_low"] * (df.loc[i - 1, "response"])
-            ) + (
-                (1 - df.loc[i - 1, "response"])
-                * (
-                    df.loc[i - 1, "q_low"]
-                    + (alfa * (df.loc[i - 1, "rew_low"] - df.loc[i - 1, "q_low"]))
-                )
-            )
-            df.loc[i, "sim_drift"] = (df.loc[i, "q_up"] - df.loc[i, "q_low"]) * (scaler)
-            data, params = hddm.generate.gen_rand_data(
-                {"a": a, "t": t, "v": df.loc[i, "sim_drift"], "z": z}, subjs=1, size=1
-            )
-            df.loc[i, "response"] = data.response[0]
-            df.loc[i, "rt"] = data.rt[0]
-            if data.response[0] == 1.0:
-                df.loc[i, "feedback"] = df.loc[i, "rew_up"]
-                if df.loc[i, "feedback"] > df.loc[i, "q_up"]:
-                    alfa = pos_alfa
-                else:
-                    alfa = alpha
-            else:
-                df.loc[i, "feedback"] = df.loc[i, "rew_low"]
-                if df.loc[i, "feedback"] > df.loc[i, "q_low"]:
-                    alfa = pos_alfa
-                else:
-                    alfa = alpha
+#         # Not sure why this is needed
+#         # df = df[
+#         #     [
+#         #         "q_up",
+#         #         "q_low",
+#         #         "sim_drift",
+#         #         # "rew_up",
+#         #         # "rew_low",
+#         #         "response",
+#         #         "rt",
+#         #         "feedback",
+#         #         "subj_idx",
+#         #         "split_by",
+#         #         "trial",
+#         #     ]
+#         # ]
+#         df = df[df.columns]
 
-        all_data.append(df)
-    all_data = pd.concat(all_data, axis=0)
-    all_data = all_data[
-        [
-            "q_up",
-            "q_low",
-            "sim_drift",
-            "response",
-            "rt",
-            "feedback",
-            "subj_idx",
-            "split_by",
-            "trial",
-        ]
-    ]
+#         data, params = hddm.generate.gen_rand_data(
+#             {"a": a, "t": t, "v": df.loc[0, "sim_drift"], "z": z}, subjs=1, size=1
+#         )
+#         df.loc[0, "response"] = data.response[0]
+#         df.loc[0, "rt"] = data.rt[0]
+#         if data.response[0] == 1.0:
+#             df.loc[0, "feedback"] = df.loc[0, "rew_up"]
+#             if df.loc[0, "feedback"] > df.loc[0, "q_up"]:
+#                 alfa = pos_alfa
+#             else:
+#                 alfa = alpha
+#         else:
+#             df.loc[0, "feedback"] = df.loc[0, "rew_low"]
+#             if df.loc[0, "feedback"] > df.loc[0, "q_low"]:
+#                 alfa = pos_alfa
+#             else:
+#                 alfa = alpha
 
-    return all_data
+#         for i in range(1, n): # loop over trials from here
+#             df.loc[i, "trial"] = i + 1
+#             df.loc[i, "q_up"] = (
+#                 df.loc[i - 1, "q_up"] * (1 - df.loc[i - 1, "response"])
+#             ) + (
+#                 (df.loc[i - 1, "response"])
+#                 * (
+#                     df.loc[i - 1, "q_up"]
+#                     + (alfa * (df.loc[i - 1, "rew_up"] - df.loc[i - 1, "q_up"]))
+#                 )
+#             )
+#             df.loc[i, "q_low"] = (
+#                 df.loc[i - 1, "q_low"] * (df.loc[i - 1, "response"])
+#             ) + (
+#                 (1 - df.loc[i - 1, "response"])
+#                 * (
+#                     df.loc[i - 1, "q_low"]
+#                     + (alfa * (df.loc[i - 1, "rew_low"] - df.loc[i - 1, "q_low"]))
+#                 )
+#             )
+#             df.loc[i, "sim_drift"] = (df.loc[i, "q_up"] - df.loc[i, "q_low"]) * (scaler)
+#             data, params = hddm.generate.gen_rand_data(
+#                 {"a": a, "t": t, "v": df.loc[i, "sim_drift"], "z": z}, subjs=1, size=1
+#             )
+#             df.loc[i, "response"] = data.response[0]
+#             df.loc[i, "rt"] = data.rt[0]
+#             if data.response[0] == 1.0:
+#                 df.loc[i, "feedback"] = df.loc[i, "rew_up"]
+#                 if df.loc[i, "feedback"] > df.loc[i, "q_up"]:
+#                     alfa = pos_alfa
+#                 else:
+#                     alfa = alpha
+#             else:
+#                 df.loc[i, "feedback"] = df.loc[i, "rew_low"]
+#                 if df.loc[i, "feedback"] > df.loc[i, "q_low"]:
+#                     alfa = pos_alfa
+#                 else:
+#                     alfa = alpha
+
+#         all_data.append(df)
+#     all_data = pd.concat(all_data, axis=0)
+#     all_data = all_data[
+#         [
+#             "q_up",
+#             "q_low",
+#             "sim_drift",
+#             "response",
+#             "rt",
+#             "feedback",
+#             "subj_idx",
+#             "split_by",
+#             "trial",
+#         ]
+#     ]
+
+#     return all_data
 
 
 
