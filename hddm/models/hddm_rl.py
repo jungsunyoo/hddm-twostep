@@ -511,12 +511,12 @@ class HDDMrl(HDDM):
                     wfpt_parents['z_qval'] = 1.00
                     wfpt_parents["z1"] = knodes["z1_bottom"]
                     wfpt_parents["z2"] = 100.00
-                    wfpt_paterns['z_interaction'] = 100.00
+                    wfpt_parents['z_interaction'] = 100.00
                 else:
                     wfpt_parents['z_qval'] = 2.00
                     wfpt_parents["z1"] = 100.00
                     wfpt_parents["z2"] = knodes["z2_bottom"]
-                    wfpt_paterns['z_interaction'] = 100.00
+                    wfpt_parents['z_interaction'] = 100.00
             else:
                 if self.z_interaction: 
                     wfpt_parents['z_interaction'] = knodes['z_interaction_bottom']
@@ -529,7 +529,7 @@ class HDDMrl(HDDM):
             wfpt_parents["z0"] = 100.00    
             wfpt_parents["z1"] = 100.00
             wfpt_parents["z2"] = 100.00
-            wfpt_paterns['z_interaction'] = 100.00
+            wfpt_parents['z_interaction'] = 100.00
             if self.z_sep_q:
                 if self.z_qmb: # == 'mb': # just use MB Qvalues
                     wfpt_parents['z_qval'] = 1.00
