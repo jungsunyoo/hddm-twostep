@@ -5,7 +5,7 @@ import pandas as pd
 from numpy.random import rand
 from scipy.stats import uniform, norm
 from copy import copy
-from simulators.basic_simulator import simulator_cv
+from hddm.simulators.basic_simulator import simulator_cv
 from scipy.special import comb
 
 
