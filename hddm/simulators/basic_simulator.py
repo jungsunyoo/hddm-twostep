@@ -166,6 +166,147 @@ def bin_arbitrary_fptd(
         cnt += 1
     return counts
 
+# JY added on 2022-03-02 for cross validation
+def simulator_cv(
+    theta,
+    model="angle",
+    n_samples=1000,
+    delta_t=0.001,  # n_trials
+    max_t=20,
+    no_noise=False,
+    bin_dim=None,
+    bin_pointwise=False,
+):
+    """Basic data simulator for the models included in HDDM.
+
+    :Arguments:
+        theta : list or numpy.array or panda.DataFrame
+            Parameters of the simulator. If 2d array, each row is treated as a 'trial'
+            and the function runs n_sample * n_trials simulations.
+        model: str <default='angle'>
+            Determines the model that will be simulated.
+        n_samples: int <default=1000>
+            Number of simulation runs (for each trial if supplied n_trials > 1)
+        n_trials: int <default=1>
+            Number of trials in a simulations run (this specifically addresses trial by trial parameterizations)
+        delta_t: float
+            Size fo timesteps in simulator (conceptually measured in seconds)
+        max_t: float
+            Maximum reaction the simulator can reach
+        no_noise: bool <default=False>
+            Turn noise of (useful for plotting purposes mostly)
+        bin_dim: int <default=None>
+            Number of bins to use (in case the simulator output is supposed to come out as a count histogram)
+        bin_pointwise: bool <default=False>
+            Wheter or not to bin the output data pointwise. If true the 'RT' part of the data is now specifies the
+            'bin-number' of a given trial instead of the 'RT' directly. You need to specify bin_dim as some number for this to work.
+
+    :Return: tuple
+        can be (rts, responses, metadata)
+        or     (rt-response histogram, metadata)
+        or     (rts binned pointwise, responses, metadata)
+
+    """
+    # Useful for sbi
+    if type(theta) == list:
+        print("theta is supplied as list --> simulator assumes n_trials = 1")
+        theta = np.asarray(theta).astype(np.float32)
+    elif type(theta) == np.ndarray:
+        theta = theta.astype(np.float32)
+    elif type(theta) == pd.core.frame.DataFrame:
+        theta = theta[model_config[model]["params"]].values.astype(np.float32)
+    else:
+        theta = theta.numpy().astype(float32)
+
+    if len(theta.shape) < 2:
+        theta = np.expand_dims(theta, axis=0)
+
+    if theta.ndim > 1:
+        n_trials = theta.shape[0]
+    else:
+        n_trials = 1
+
+    # 2 choice models
+    if no_noise:
+        s = 0.0
+    else:
+        s = 1.0
+
+
+
+
+    # for 
+
+
+
+
+    if model == "test":
+        x = ddm_flexbound(
+            v=theta[:, 0],
+            a=theta[:, 1],
+            z=theta[:, 2],
+            t=theta[:, 3],
+            s=s,
+            n_samples=n_samples,
+            n_trials=n_trials,
+            delta_t=delta_t,
+            boundary_params={},
+            boundary_fun=bf.constant,
+            boundary_multiplicative=True,
+            max_t=max_t,
+        ) # return of ddm_flexbound is rts, choices
+
+    if model == "ddm" or model == "ddm_elife" or model == "ddm_analytic":
+        x = ddm_flexbound(
+            v=theta[:, 0],
+            a=theta[:, 1],
+            z=theta[:, 2],
+            t=theta[:, 3],
+            s=s,
+            n_samples=n_samples,
+            n_trials=n_trials,
+            delta_t=delta_t,
+            boundary_params={},
+            boundary_fun=bf.constant,
+            boundary_multiplicative=True,
+            max_t=max_t,
+        )
+    # Output compatibility
+    if n_trials == 1:
+        x = (np.squeeze(x[0], axis=1), np.squeeze(x[1], axis=1), x[2])
+    if n_trials > 1 and n_samples == 1:
+        x = (np.squeeze(x[0], axis=0), np.squeeze(x[1], axis=0), x[2])
+
+    x[2]["model"] = model
+
+    if bin_dim == 0 or bin_dim == None:
+        return x
+    elif bin_dim > 0 and n_trials == 1 and not bin_pointwise:
+        binned_out = bin_simulator_output(x, nbins=bin_dim)
+        return (binned_out, x[2])
+    elif bin_dim > 0 and n_trials == 1 and bin_pointwise:
+        binned_out = bin_simulator_output_pointwise(x, nbins=bin_dim)
+        return (
+            np.expand_dims(binned_out[:, 0], axis=1),
+            np.expand_dims(binned_out[:, 1], axis=1),
+            x[2],
+        )
+    elif bin_dim > 0 and n_trials > 1 and n_samples == 1 and bin_pointwise:
+        binned_out = bin_simulator_output_pointwise(x, nbins=bin_dim)
+        return (
+            np.expand_dims(binned_out[:, 0], axis=1),
+            np.expand_dims(binned_out[:, 1], axis=1),
+            x[2],
+        )
+    elif bin_dim > 0 and n_trials > 1 and n_samples > 1 and bin_pointwise:
+        return "currently n_trials > 1 and n_samples > 1 will not work together with bin_pointwise"
+    elif bin_dim > 0 and n_trials > 1 and not bin_pointwise:
+        return "currently binned outputs not implemented for multi-trial simulators"
+    elif bin_dim == -1:
+        return "invalid bin_dim"
+
+
+
 
 def simulator(
     theta,

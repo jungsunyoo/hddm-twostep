@@ -550,7 +550,7 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         if v_interaction == 100.00: # if don't use interaction term
                             v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
                         else: # if use interaction term 
-                            v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb + dtq_mf)
+                            v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
                     elif v_qval == 1: # just mb
                         v_ = v0 + (dtq_mb * v1)
                     elif v_qval == 2: 

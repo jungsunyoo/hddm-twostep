@@ -359,6 +359,83 @@ def ddm(np.ndarray[float, ndim = 1] v, # drift by timestep 'delta_t'
                            'boundary_fun_type': 'constant',
                            'possible_choices': [0, 1]})
 
+
+# # -------------------------------------------------------------------------------------------------
+# # JY added on 2022-03-02 
+# # Cross validation -----------------------------------------------
+# # Things newly added: 
+
+
+def ddm_cv(np.ndarray[float, ndim = 1] v, # drift by timestep 'delta_t'
+        np.ndarray[float, ndim = 1] a, # boundary separation
+        np.ndarray[float, ndim = 1] z,  # between 0 and 1
+        np.ndarray[float, ndim = 1] t, # non-decision time
+        float s = 1, # noise sigma
+        float delta_t = 0.001, # timesteps fraction of seconds
+        float max_t = 20, # maximum rt allowed
+        int n_samples = 20000, # number of samples considered
+        int n_trials = 10,
+        ):
+
+    # Param views
+    cdef float[:] v_view = v
+    cdef float[:] a_view = a
+    cdef float[:] z_view = z
+    cdef float[:] t_view = t
+
+    rts = np.zeros((n_samples, n_trials, 1), dtype = DTYPE)
+    choices = np.zeros((n_samples, n_trials, 1), dtype = np.intc)
+    cdef float[:, :, :] rts_view = rts
+    cdef int[:, :, :] choices_view = choices
+
+    cdef float delta_t_sqrt = sqrt(delta_t)
+    cdef float sqrt_st = delta_t_sqrt * s
+
+    cdef float y, t_particle
+
+    #cdef int n
+    cdef Py_ssize_t n, k
+    cdef int m = 0
+    cdef int num_draws = int(max_t / delta_t + 1)
+    cdef float[:] gaussian_values = draw_gaussian(num_draws)
+    
+    for k in range(n_trials):
+        # Loop over samples
+        for n in range(n_samples):
+            y = z_view[k] * a_view[k] # reset starting point
+            t_particle = 0.0 # reset time
+
+            # Random walker
+            while y <= a_view[k] and y >= 0 and t_particle <= max_t:
+                y += v_view[k] * delta_t + sqrt_st * gaussian_values[m] # update particle position
+                t_particle += delta_t
+                m += 1
+                if m == num_draws:
+                    gaussian_values = draw_gaussian(num_draws)
+                    m = 0
+
+            # Note that for purposes of consistency with Navarro and Fuss, 
+            # the choice corresponding the lower barrier is +1, higher barrier is -1
+            rts_view[n, k, 0] = t_particle + t_view[k] # store rt
+            if y < 0:
+                choices_view[n, k, 0] = 0 # store choice
+            else:
+                choices_view[n, k, 0] = 1 # store choice
+        
+    return (rts, choices, {'v': v,
+                           'a': a,
+                           'z': z,
+                           't': t,
+                           's': s,
+                           'delta_t': delta_t,
+                           'max_t': max_t,
+                           'n_samples': n_samples,
+                           'simulator': 'ddm',
+                           'boundary_fun_type': 'constant',
+                           'possible_choices': [0, 1]})
+
+
+
 # # -------------------------------------------------------------------------------------------------
 # # JY added on 2022-02-08 
 # # Simulate (rt, choice) tuples from: THINK-ACT DDM -----------------------------------------------
