@@ -761,13 +761,20 @@ def cross_validation(
     two_stage = kwargs.pop("two_stage", False)  # whether two stage
     qval = kwargs.pop("qval", False)  # whether
     scaler = kwargs.pop("scaler", False)
-    print("line 764, {}".format(scaler))
+
     scaler2 = kwargs.pop("scaler_2", False)
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
     # nstates=kwargs.pop("nstates",False)
 
     all_data = []
+
+
+    all_data_response = []
+    all_data_rt = []
+
+
+
     tg = t
     ag = a
     t_2g = t_2
@@ -778,7 +785,7 @@ def cross_validation(
 
     pos_alphag = pos_alpha
     scalerg = scaler
-    print("line 781, {}".format(scalerg))
+
     scaler2g = scaler2
 
     Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
@@ -812,7 +819,7 @@ def cross_validation(
         scaler = (
             np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
         )
-        print("line 812, {}".format(scaler))
+
 
         if np.isnan(pos_alpha):
             pos_alfa = alpha
@@ -995,10 +1002,10 @@ def cross_validation(
 
                 if v0:  # if use v regression
                     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-                    print("line 997, {}".format(v_))
+
                 else:  # if don't use v regression                   
                     v_ = scaler
-                    print("line 1000, {}".format(v_))
+
 
                 if z0:
                     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
@@ -1012,7 +1019,7 @@ def cross_validation(
                 #     rt = -rt
                 #     v_ = -v_
                 # x = simulator_cv([v_, a, sig, t])
-                print("line 1015, {}".format(v_))
+
                 data, params = hddm.generate.gen_rand_data(
                     {"a": a, "t": t, "v": v_, "z": sig},
                     # subjs=1, size=1
@@ -1026,9 +1033,12 @@ def cross_validation(
 
                 # return data
 
-                df.loc[j, "response"] = data.response[0]
-                df.loc[j, "rt"] = data.rt[0]
+                # df.loc[j, "response"] = data.response #data.response[0]
+                # df.loc[j, "rt"] = data.rt #data.rt[0]
 
+
+                all_data_rt.append(data.rt)
+                all_data_response.append(data.response)
                 # p = full_pdf(rt, v_, sv, a, sig,
                 #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)                
                 # # If one probability = 0, the log sum will be -Inf
@@ -1040,24 +1050,24 @@ def cross_validation(
                 # answer_choice = responses1_train[j]
                 # answer_rt = rt2_test[j]
 
-                all_data.append(df)
-        all_data = pd.concat(all_data, axis=0)
-        all_data = all_data[
-            [
-                # "q_up",
-                # "q_low",
-                "sim_drift",
-                "response",
-                "rt",
-                "feedback",
-                "subj_idx",
-                "split_by",
-                "trial",
-            ]
-        ]
+                # all_data.append(df)
+        # all_data = pd.concat(all_data, axis=0)
+        # all_data = all_data[
+        #     [
+        #         # "q_up",
+        #         # "q_low",
+        #         "sim_drift",
+        #         "response",
+        #         "rt",
+        #         "feedback",
+        #         "subj_idx",
+        #         "split_by",
+        #         "trial",
+        #     ]
+        # ]
 
-    return all_data
-
+    # return all_data
+    return all_data_response, all_data_rt
 
 def gen_rand_rl_data(
         scaler,
