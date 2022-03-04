@@ -755,17 +755,17 @@ def cross_validation(
     z1 = kwargs.pop("z1", False)
     z2 = kwargs.pop("z2", False)
     z_interaction = kwargs.pop("z_interaction", False)
-    lambda_ = kwargs.pop("lambda_", False)  # float("nan"),
+    lambda_ = kwargs.pop("lambda_", False)  # float("nan")
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
     two_stage = kwargs.pop("two_stage", False)  # whether two stage
     qval = kwargs.pop("qval", False)  # whether
-    scaler = kwargs.pop("scaler", False),
+    scaler = kwargs.pop("scaler", False)
     print("line 764, {}".format(scaler))
-    scaler2 = kwargs.pop("scaler_2", False),
+    scaler2 = kwargs.pop("scaler_2", False)
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
-    # nstates=kwargs.pop("nstates",False),     
+    # nstates=kwargs.pop("nstates",False)
 
     all_data = []
     tg = t
@@ -1044,8 +1044,8 @@ def cross_validation(
         all_data = pd.concat(all_data, axis=0)
         all_data = all_data[
             [
-                "q_up",
-                "q_low",
+                # "q_up",
+                # "q_low",
                 "sim_drift",
                 "response",
                 "rt",
