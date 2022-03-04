@@ -207,6 +207,8 @@ def gen_rts(
     elif method == "drift":
         rts = _gen_rts_from_simulated_drift(params, size, dt, intra_sv)[0]
     elif method == "cdf":
+
+        print(params, size, range_, dt)
         rts = hddm.wfpt.gen_rts_from_cdf(
             params["v"],
             params["sv"],
@@ -1009,7 +1011,7 @@ def cross_validation(
                 data, params = hddm.generate.gen_rand_data(
                     {"a": a, "t": t, "v": v_, "z": sig},
                     # subjs=1, size=1
-                    subjs=1, size=1000  # make 1,000 simulations?
+                    size=1000, subjs=1   # make 1,000 simulations?
                 )
 
                 # data = pd.DataFrame(rts, columns=["rt"])
