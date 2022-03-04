@@ -828,14 +828,14 @@ def cross_validation(
         rt = np.tile([0], n)
 
         # if two_stage: 
-        if t2:
-            t2 = (
+        if t_2:
+            t_2 = (
                 np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
                 if subjs > 1
                 else t_2g
             )
-        if a2:
-            a2 = (
+        if a_2:
+            a_2 = (
                 np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
                 if subjs > 1
                 else a_2g
