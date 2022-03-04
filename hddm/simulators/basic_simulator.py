@@ -169,7 +169,8 @@ def bin_arbitrary_fptd(
 # JY added on 2022-03-02 for cross validation
 def simulator_cv(
     theta,
-    model="angle",
+    # model="angle",
+    model = "test", 
     n_samples=1000,
     delta_t=0.001,  # n_trials
     max_t=20,
@@ -231,14 +232,6 @@ def simulator_cv(
         s = 0.0
     else:
         s = 1.0
-
-
-
-
-    # for 
-
-
-
 
     if model == "test":
         x = ddm_flexbound(
