@@ -1007,7 +1007,7 @@ def cross_validation(
                 #     rt = -rt
                 #     v_ = -v_
                 # x = simulator_cv([v_, a, sig, t])
-
+                print(v_)
                 data, params = hddm.generate.gen_rand_data(
                     {"a": a, "t": t, "v": v_, "z": sig},
                     # subjs=1, size=1
