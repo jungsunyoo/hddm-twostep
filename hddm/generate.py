@@ -760,9 +760,9 @@ def cross_validation(
     w = kwargs.pop("w", False)
     two_stage = kwargs.pop("two_stage", False)  # whether two stage
     qval = kwargs.pop("qval", False)  # whether
-    scaler = kwargs.pop("v", False),
+    scaler = kwargs.pop("scaler", False),
     print("line 764, {}".format(scaler))
-    scaler2 = kwargs.pop("v_2", False),
+    scaler2 = kwargs.pop("scaler_2", False),
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
     # nstates=kwargs.pop("nstates",False),     
