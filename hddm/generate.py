@@ -208,7 +208,6 @@ def gen_rts(
         rts = _gen_rts_from_simulated_drift(params, size, dt, intra_sv)[0]
     elif method == "cdf":
 
-        print(params, size, range_, dt)
         rts = hddm.wfpt.gen_rts_from_cdf(
             params["v"],
             params["sv"],
@@ -680,7 +679,7 @@ def cross_validation(
         size=1,
         p_upper=1,
         p_lower=0,
-        z=0.5,
+        # z=0.5,
         q_init=0.5,
         pos_alpha=float("nan"),
         # subjs=1,
@@ -719,8 +718,8 @@ def cross_validation(
 
     rt1_test = x_test["rt1"].values
     rt2_test = x_test["rt2"].values
-    response1_test = x_test["response1"].values.astype(int)
-    response2_test = x_test["response2"].values.astype(int)
+    responses1_test = x_test["response1"].values.astype(int)
+    responses2_test = x_test["response2"].values.astype(int)
     s1s_test = x_test["state1"].values.astype(int)
     s2s_test = x_test["state2"].values.astype(int)
 
@@ -741,8 +740,8 @@ def cross_validation(
     # Receiving all keyword arguments
 
     dual = kwargs.pop("dual", False)
-    a = kwargs.pop("a", False)
-    a_2 = kwargs.pop("a_2", False)
+    a = kwargs.pop("a", 1) # return 1 as default (if not otherwise specified)
+    a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
     t = kwargs.pop("t", False)
     t_2 = kwargs.pop("t_2", False)
     # v=False,#float("nan"), # v is represented as scaler
@@ -750,11 +749,13 @@ def cross_validation(
     v1 = kwargs.pop("v1", False)
     v2 = kwargs.pop("v2", False)
     v_interaction = kwargs.pop("v_interaction", False)
-    z = kwargs.pop("z", False)
+    v_2 = kwargs.pop("v_2", False)
+    z = kwargs.pop("z", 0.5) # return 0.5 as default (if not otherwise specified)
     z0 = kwargs.pop("z0", False)
     z1 = kwargs.pop("z1", False)
     z2 = kwargs.pop("z2", False)
     z_interaction = kwargs.pop("z_interaction", False)
+    z_2 = kwargs.pop("z_2", 0.5)
     lambda_ = kwargs.pop("lambda_", False)  # float("nan")
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
@@ -769,12 +770,12 @@ def cross_validation(
 
     all_data = []
 
-
     all_data_response = []
     all_data_rt = []
-
-
-
+    all_data_response1 = []
+    all_data_rt1 = []
+    all_data_response2 = []
+    all_data_rt2 = []
     tg = t
     ag = a
     t_2g = t_2
@@ -819,7 +820,6 @@ def cross_validation(
         scaler = (
             np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
         )
-
 
         if np.isnan(pos_alpha):
             pos_alfa = alpha
@@ -992,6 +992,7 @@ def cross_validation(
             else:  # TEST: do the RT/choice simulation
                 j += 1
 
+                # FIRST STAGE
                 planets = state_combinations[s1s_test[j]]
 
                 # dtq = qs[1] - qs[0]
@@ -1006,12 +1007,14 @@ def cross_validation(
                 else:  # if don't use v regression                   
                     v_ = scaler
 
+                if isleft1_test[j] == 0: # if chosen right
+                    v_ = -v_
 
                 if z0:
                     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
                     sig = 1 / (1 + np.exp(-z_))
                 else:
-                    sig = 0.5
+                    sig = z
 
                     # rt = x1s[i]
 
@@ -1020,36 +1023,54 @@ def cross_validation(
                 #     v_ = -v_
                 # x = simulator_cv([v_, a, sig, t])
 
-                data, params = hddm.generate.gen_rand_data(
+                data1, params1 = hddm.generate.gen_rand_data(
                     {"a": a, "t": t, "v": v_, "z": sig},
                     # subjs=1, size=1
-                    size=1000, subjs=1   # make 1,000 simulations?
+                    size=1000, subjs=1  # make 1,000 simulations?
                 )
+                # SECOND STAGE
+                if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
+                    qs = qs_mb[s2s_test[j], :]
+                    dtq = qs[1] - qs[0]
+                    v_ = dtq * v_2
+                    if isleft2_test[j] == 0:  # if chosen right
+                        v_ = -v_
+                    sig = z_2
+                    data2, params2 = hddm.generate.gen_rand_data(
+                        {"a": a_2, "t": t_2, "v": v_, "z": sig},
+                        # subjs=1, size=1
+                        size=1000, subjs=1  # make 1,000 simulations?
+                    )
+                    all_data_rt2.append(data2.rt)
+                    all_data_response2.append(data2.response)
 
-                # data = pd.DataFrame(rts, columns=["rt"])
-                # data["response"] = 1.0
-                # data["response"][data["rt"] < 0] = 0.0
-                # data["rt"] = np.abs(data["rt"])
+                # Update test fold
+                dtQ1 = qs_mb[s2s_test[j], responses2_test[j]] - qs_mf[
+                    s1s_test[j], responses1_test[j]]  # delta stage 1
+                qs_mf[s1s_test[j], responses1_test[j]] = qs_mf[s1s_test[j], responses1_test[
+                    j]] + alfa * dtQ1  # delta update for qmf
 
-                # return data
+                dtQ2 = feedback_test[j] - qs_mb[s2s_test[j], responses2_test[j]]  # delta stage 2
+                qs_mb[s2s_test[j], responses2_test[j]] = qs_mb[s2s_test[j], responses2_test[
+                    j]] + alfa2 * dtQ2  # delta update for qmb
+                if lambda_:  # if using eligibility trace
+                    qs_mf[s1s_test[j], responses1_test[j]] = qs_mf[s1s_test[j], responses1_test[
+                        j]] + lambda__ * dtQ2  # eligibility trace
 
-                # df.loc[j, "response"] = data.response #data.response[0]
-                # df.loc[j, "rt"] = data.rt #data.rt[0]
+                # memory decay for unexperienced options in this trial
+                if gamma:
+                    for s_ in range(nstates):
+                        for a_ in range(2):
+                            if (s_ is not s2s_test[j]) or (a_ is not responses2_test[j]):
+                                # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+                                qs_mb[s_, a_] *= (1 - gamma_)
 
-
-                all_data_rt.append(data.rt)
-                all_data_response.append(data.response)
-                # p = full_pdf(rt, v_, sv, a, sig,
-                #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)                
-                # # If one probability = 0, the log sum will be -Inf
-                # p = p * (1 - p_outlier) + wp_outlier
-                # if p == 0:
-                #     return -np.inf
-                # sum_logp += log(p)
-
-                # answer_choice = responses1_train[j]
-                # answer_rt = rt2_test[j]
-
+                    for s_ in range(comb(nstates, 2, exact=True)):
+                        for a_ in range(2):
+                            if (s_ is not s1s_test[j]) or (a_ is not responses1_test[j]):
+                                qs_mf[s_, a_] *= (1 - gamma_)
+                all_data_rt1.append(data1.rt)
+                all_data_response1.append(data1.response)
                 # all_data.append(df)
         # all_data = pd.concat(all_data, axis=0)
         # all_data = all_data[
@@ -1066,8 +1087,16 @@ def cross_validation(
         #     ]
         # ]
 
+        all_data_rt.append(all_data_rt1)
+        all_data_rt.append(all_data_rt2)
+        if t_2:  # if 2nd stage is also estimated:
+            all_data_response.append(all_data_response1)
+            all_data_response.append(all_data_response2)
+
+
     # return all_data
     return all_data_response, all_data_rt
+
 
 def gen_rand_rl_data(
         scaler,
