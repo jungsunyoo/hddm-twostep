@@ -1086,11 +1086,10 @@ def cross_validation(
         #         "trial",
         #     ]
         # ]
-
         all_data_rt.append(all_data_rt1)
-        all_data_rt.append(all_data_rt2)
+        all_data_response.append(all_data_response1)
         if t_2:  # if 2nd stage is also estimated:
-            all_data_response.append(all_data_response1)
+            all_data_rt.append(all_data_rt2)
             all_data_response.append(all_data_response2)
 
 
