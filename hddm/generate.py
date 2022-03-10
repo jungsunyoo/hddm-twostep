@@ -676,20 +676,20 @@ def cross_validation(
         x_train,  # this is the dataframe of data of the given participant
         x_test,
         fold,
-        size=1,
-        p_upper=1,
-        p_lower=0,
-        # z=0.5,
-        q_init=0.5,
-        pos_alpha=float("nan"),
-        # subjs=1,
-        split_by=0,
-        mu_upper=1,
-        mu_lower=0,
-        sd_upper=0.1,
-        sd_lower=0.1,
-        binary_outcome=True,
-        uncertainty=False,
+        # size=1,
+        # p_upper=1,
+        # p_lower=0,
+        # # z=0.5,
+        # q_init=0.5,
+        # # pos_alpha=float("nan"),
+        # # subjs=1,
+        # split_by=0,
+        # mu_upper=1,
+        # mu_lower=0,
+        # sd_upper=0.1,
+        # sd_lower=0.1,
+        # binary_outcome=True,
+        # uncertainty=False,
         **kwargs
 ):
     # Receiving behavioral data
@@ -757,8 +757,8 @@ def cross_validation(
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
     scaler = kwargs.pop("scaler", False)
-
     scaler2 = kwargs.pop("scaler_2", False)
+    pos_alpha = kwargs.pop("pos_alpha", False)
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
 
