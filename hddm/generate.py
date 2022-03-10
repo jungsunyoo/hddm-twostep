@@ -738,13 +738,10 @@ def cross_validation(
     q_test = x_test["q_init"].iloc[0]
 
     # Receiving all keyword arguments
-
-    dual = kwargs.pop("dual", False)
     a = kwargs.pop("a", 1) # return 1 as default (if not otherwise specified)
     a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
     t = kwargs.pop("t", False)
     t_2 = kwargs.pop("t_2", False)
-    # v=False,#float("nan"), # v is represented as scaler
     v0 = kwargs.pop("v0", False)
     v1 = kwargs.pop("v1", False)
     v2 = kwargs.pop("v2", False)
@@ -759,16 +756,11 @@ def cross_validation(
     lambda_ = kwargs.pop("lambda_", False)  # float("nan")
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
-    two_stage = kwargs.pop("two_stage", False)  # whether two stage
-    qval = kwargs.pop("qval", False)  # whether
     scaler = kwargs.pop("scaler", False)
 
     scaler2 = kwargs.pop("scaler_2", False)
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
-    # nstates=kwargs.pop("nstates",False)
-
-    all_data = []
 
     all_data_response = []
     all_data_rt = []
@@ -831,14 +823,6 @@ def cross_validation(
             )
         # n = size
         n = len(x_test)
-
-        # Just making placeholders for the dataframe
-        q_up = np.tile([q_init], n)
-        q_low = np.tile([q_init], n)
-        response = np.tile([0.5], n)
-        feedback = np.tile([0.5], n)
-        rt = np.tile([0], n)
-
         # if two_stage: 
         if t_2:
             t_2 = (
@@ -869,17 +853,6 @@ def cross_validation(
                 np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scaler2g
             )
 
-            # # ???? come back later
-        # response2 = np.tile([0.5], n)
-        # feedback2 = np.tile([0.5], n)
-
-        # rt = np.tile([0], n)
-
-        # rew_up = []
-        # rew_low = []
-        # q_up = []
-        # q_low = []
-
         qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
         qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
 
@@ -896,63 +869,7 @@ def cross_validation(
         if w:
             w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
 
-        sim_drift = np.tile([0], n)
-        subj_idx = np.tile([s], n)
-        d = {
-            # "q_up": q_up,
-            # "q_low": q_low,
-            "sim_drift": sim_drift,
-            # "rew_up": rew_up,
-            # "rew_low": rew_low,
-            "response": response,
-            "rt": rt,
-            "feedback": feedback,
-            "subj_idx": subj_idx,
-            "split_by": split_by,
-            "trial": 1,
-        }
-        # # JY added for two step
-        # for ns in range(nstates):
-        #     d['rew_up_s' + str(ns)] = p_upper[ns]
-        #     d['rew_low_s' + str(ns)] = p_lower[ns]
-
-        df = pd.DataFrame(data=d)
-
-        # Not sure why this is needed
-        # df = df[
-        #     [
-        #         "q_up",
-        #         "q_low",
-        #         "sim_drift",
-        #         # "rew_up",
-        #         # "rew_low",
-        #         "response",
-        #         "rt",
-        #         "feedback",
-        #         "subj_idx",
-        #         "split_by",
-        #         "trial",
-        #     ]
-        # ]
-        df = df[df.columns]
         state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
-        # data, params = hddm.generate.gen_rand_data(
-        #     {"a": a, "t": t, "v": df.loc[0, "sim_drift"], "z": z}, subjs=1, size=1
-        # )
-        # df.loc[0, "response"] = data.response[0]
-        # df.loc[0, "rt"] = data.rt[0]
-        # if data.response[0] == 1.0:
-        #     df.loc[0, "feedback"] = df.loc[0, "rew_up"]
-        #     if df.loc[0, "feedback"] > df.loc[0, "q_up"]:
-        #         alfa = pos_alfa
-        #     else:
-        #         alfa = alpha
-        # else:
-        #     df.loc[0, "feedback"] = df.loc[0, "rew_low"]
-        #     if df.loc[0, "feedback"] > df.loc[0, "q_low"]:
-        #         alfa = pos_alfa
-        #     else:
-        #         alfa = alpha
 
         for counter in range(total_x_len):  # loop over total data, including train
             i = -1
@@ -1071,21 +988,7 @@ def cross_validation(
                                 qs_mf[s_, a_] *= (1 - gamma_)
                 all_data_rt1.append(data1.rt)
                 all_data_response1.append(data1.response)
-                # all_data.append(df)
-        # all_data = pd.concat(all_data, axis=0)
-        # all_data = all_data[
-        #     [
-        #         # "q_up",
-        #         # "q_low",
-        #         "sim_drift",
-        #         "response",
-        #         "rt",
-        #         "feedback",
-        #         "subj_idx",
-        #         "split_by",
-        #         "trial",
-        #     ]
-        # ]
+
         all_data_rt.append(all_data_rt1)
         all_data_response.append(all_data_response1)
         if t_2:  # if 2nd stage is also estimated:
