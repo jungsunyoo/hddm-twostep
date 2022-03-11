@@ -577,8 +577,8 @@ class HDDMrl(HDDM):
             self.wfpt_rl_class,
             "wfpt",
             observed=True,
-            # col_name=["split_by", "feedback", "response1", "response2", "rt1", "rt2",  "q_init", "state1", "state2", ],
-            col_name=["split_by", "feedback", "response1", "response2", "rt1", "rt2",  "q_init", "state1", "state2", "isleft1", "isleft2"],
+            col_name=["split_by", "feedback", "response1", "response2", "rt1", "rt2",  "q_init", "state1", "state2", ],
+            # col_name=["split_by", "feedback", "response1", "response2", "rt1", "rt2",  "q_init", "state1", "state2", "isleft1", "isleft2"],
             **wfpt_parents
         )
 
@@ -633,8 +633,8 @@ def wienerRL_like_2step(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz,
     state1 = x["state1"].values.astype(int)
     state2 = x["state2"].values.astype(int)
 
-    isleft1 = x["isleft1"].values.astype(int)
-    isleft2 = x["isleft2"].values.astype(int)
+    # isleft1 = x["isleft1"].values.astype(int)
+    # isleft2 = x["isleft2"].values.astype(int)
 
 
     q = x["q_init"].iloc[0]
