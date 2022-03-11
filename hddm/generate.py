@@ -924,8 +924,8 @@ def cross_validation(
                 else:  # if don't use v regression                   
                     v_ = scaler
 
-                if isleft1_test[j] == 0: # if chosen right
-                    v_ = -v_
+                # if isleft1_test[j] == 0: # if chosen right
+                #     v_ = -v_
 
                 if z0:
                     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
@@ -950,8 +950,8 @@ def cross_validation(
                     qs = qs_mb[s2s_test[j], :]
                     dtq = qs[1] - qs[0]
                     v_ = dtq * v_2
-                    if isleft2_test[j] == 0:  # if chosen right
-                        v_ = -v_
+                    # if isleft2_test[j] == 0:  # if chosen right
+                    #     v_ = -v_
                     sig = z_2
                     data2, params2 = hddm.generate.gen_rand_data(
                         {"a": a_2, "t": t_2, "v": v_, "z": sig},
