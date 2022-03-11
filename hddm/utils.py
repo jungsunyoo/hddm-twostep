@@ -120,22 +120,47 @@ def flip_errors(data):
 
     """
 
+    # Check if data is already flipped
+    # if np.any(data["rt"] < 0):
+    if np.any(data['rt1'] < 0) or np.any(data['rt2'] < 0): # JY modified on 2022-03-11 for two RTs
+        return data
 
-    
-    # # Check if data is already flipped
-    # # if np.any(data["rt"] < 0):
-    # # JY changed for two-step tasks
-    # if np.any(data["rt1"] < 0) or np.any(data["rt2"]<0):
-    #     return data
+    # Copy data
+    data = pd.DataFrame(data.copy())
 
-    # # Copy data
-    # data = pd.DataFrame(data.copy())
+    # Flip sign for lower boundary response
+    # If the response is not 1, we flip the sign of rt
 
-    # # Flip sign for lower boundary response
-    # idx = data["response"] == 0
+    # idx = data["response"] != 1
     # data.loc[idx, "rt"] = -data.loc[idx, "rt"]
 
+    idx = data["response1"] != 1
+    data.loc[idx, "rt1"] = -data.loc[idx, "rt1"]
+
+    idx = data["response2"] != 1
+    data.loc[idx, "rt2"] = -data.loc[idx, "rt2"]
+
+
+
+    # # In case responses were supplied as [-1, 1]
+    # idx = data["response"] == -1
+    # data.loc[idx, "rt"] = -data.loc[idx, "rt"]
     return data
+    
+    # # # Check if data is already flipped
+    # # # if np.any(data["rt"] < 0):
+    # # # JY changed for two-step tasks
+    # # if np.any(data["rt1"] < 0) or np.any(data["rt2"]<0):
+    # #     return data
+    #
+    # # # Copy data
+    # # data = pd.DataFrame(data.copy())
+    #
+    # # # Flip sign for lower boundary response
+    # # idx = data["response"] == 0
+    # # data.loc[idx, "rt"] = -data.loc[idx, "rt"]
+    #
+    # return data
 
 
 def flip_errors_nn(data, network_type="mlp", nbins=None, max_rt=20):

@@ -693,8 +693,8 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
     state1 = x["state1"].values.astype(int)
     state2 = x["state2"].values.astype(int)
 
-    isleft1 = x["isleft1"].values.astype(int)
-    isleft2 = x["isleft2"].values.astype(int)
+    # isleft1 = x["isleft1"].values.astype(int)
+    # isleft2 = x["isleft2"].values.astype(int)
 
 
     q = x["q_init"].iloc[0]
@@ -716,8 +716,8 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
         x["rt1"].values,
         x["rt2"].values,
 
-        isleft1,
-        isleft2,
+        # isleft1,
+        # isleft2,
 
         state1,
         state2,
