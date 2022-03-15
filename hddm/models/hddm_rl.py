@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step, wiener_like_rlddm_2step_reg
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -617,63 +617,63 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
         **wp
     )
 
-def wienerRL_like_2step(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
-
-    wiener_params = {
-        "err": 1e-4,
-        "n_st": 2,
-        "n_sz": 2,
-        "use_adaptive": 1,
-        "simps_err": 1e-3,
-        "w_outlier": 0.1,
-    }
-    wp = wiener_params
-    response1 = x["response1"].values.astype(int)
-    response2 = x["response2"].values.astype(int)
-    state1 = x["state1"].values.astype(int)
-    state2 = x["state2"].values.astype(int)
-
-    # isleft1 = x["isleft1"].values.astype(int)
-    # isleft2 = x["isleft2"].values.astype(int)
-
-
-    q = x["q_init"].iloc[0]
-    feedback = x["feedback"].values.astype(float)
-    split_by = x["split_by"].values.astype(int)
-
-
-    # YJS added for two-step tasks on 2021-12-05
-    # nstates = x["nstates"].values.astype(int)
-    nstates = max(x["state2"].values.astype(int)) + 1
-
-
-    return wiener_like_rlddm_2step(
-        x["rt1"].values,
-        x["rt2"].values,
-        state1,
-        state2,
-        response1,
-        response2,
-        feedback,
-        split_by,
-        q,
-        alpha,
-        pos_alpha, 
-        w, # added for two-step task
-        gamma, # added for two-step task 
-        lambda_, # added for two-step task 
-
-        v,
-        sv,
-        a,
-        z,
-        sz,
-        t,
-        nstates,
-        st,
-        p_outlier=p_outlier,
-        **wp
-    )
+# def wienerRL_like_2step(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
+#
+#     wiener_params = {
+#         "err": 1e-4,
+#         "n_st": 2,
+#         "n_sz": 2,
+#         "use_adaptive": 1,
+#         "simps_err": 1e-3,
+#         "w_outlier": 0.1,
+#     }
+#     wp = wiener_params
+#     response1 = x["response1"].values.astype(int)
+#     response2 = x["response2"].values.astype(int)
+#     state1 = x["state1"].values.astype(int)
+#     state2 = x["state2"].values.astype(int)
+#
+#     # isleft1 = x["isleft1"].values.astype(int)
+#     # isleft2 = x["isleft2"].values.astype(int)
+#
+#
+#     q = x["q_init"].iloc[0]
+#     feedback = x["feedback"].values.astype(float)
+#     split_by = x["split_by"].values.astype(int)
+#
+#
+#     # YJS added for two-step tasks on 2021-12-05
+#     # nstates = x["nstates"].values.astype(int)
+#     nstates = max(x["state2"].values.astype(int)) + 1
+#
+#
+#     return wiener_like_rlddm_2step(
+#         x["rt1"].values,
+#         x["rt2"].values,
+#         state1,
+#         state2,
+#         response1,
+#         response2,
+#         feedback,
+#         split_by,
+#         q,
+#         alpha,
+#         pos_alpha,
+#         w, # added for two-step task
+#         gamma, # added for two-step task
+#         lambda_, # added for two-step task
+#
+#         v,
+#         sv,
+#         a,
+#         z,
+#         sz,
+#         t,
+#         nstates,
+#         st,
+#         p_outlier=p_outlier,
+#         **wp
+#     )
 # def wienerRL_like_2step_reg(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0): # regression ver1: without bounds
 # def wienerRL_like_2step_reg(x, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, z0, z1, z2,t, p_outlier=0): # regression ver2: bounded, a fixed to 1
