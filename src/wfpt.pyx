@@ -385,7 +385,7 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double t_2,
                       double v_2,
                       double alpha2,
-                      double w, double z_std,
+                      double w, double z_sigma,
 
 
                       # double st,
@@ -604,13 +604,13 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     v_2_ = v if v_2==100.00 else v_2
                     a_2_ = a if a_2 == 100.00 else a_2
 
-                    # CONFIGURE Z_2 USING Z_STD AND V HERE!!!
-                    if z_std ==100.00: # if don't use 1st-stage dependent drift rate
+                    # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
+                    if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
                         z_2_ = z if z_2 == 0.5 else z_2
                     else: # if use 1st-stage dependent drift rate
                         # z2 = logit(v1) + Normal(0, sigma_z2)
-                        # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_std,1)
-                        z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_std, 1), 0, 1)
+                        # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
+                        z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
 
 
 
