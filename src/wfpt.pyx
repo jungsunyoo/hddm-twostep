@@ -36,7 +36,7 @@ include 'integrate.pxi'
 
 np.warnings.filterwarnings('ignore', '(overflow|invalid)')
 
-
+np.random.seed(seed=1234)
 
 def pdf_array(np.ndarray[double, ndim=1] x, double v, double sv, double a, double z, double sz,
               double t, double st, double err=1e-4, bint logp=0, int n_st=2, int n_sz=2, bint use_adaptive=1,
@@ -385,7 +385,8 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double t_2,
                       double v_2,
                       double alpha2,
-                      double w,
+                      double w, double z_std,
+
 
                       # double st,
 
@@ -602,7 +603,21 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     v_2_ = v if v_2==100.00 else v_2
                     a_2_ = a if a_2 == 100.00 else a_2
-                    z_2_ = z if z_2 == 0.5 else z_2
+
+                    # CONFIGURE Z_2 USING Z_STD AND V HERE!!!
+                    if z_std ==100.00: # if don't use 1st-stage dependent drift rate
+                        z_2_ = z if z_2 == 0.5 else z_2
+                    else: # if use 1st-stage dependent drift rate
+                        # z2 = logit(v1) + Normal(0, sigma_z2)
+                        # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_std,1)
+                        z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_std, 1), 0, 1)
+
+
+
+
+
+
+
                     t_2_ = t if t_2 == 100.00 else t_2
 
                     qs = qs_mb[s2s[i],:]

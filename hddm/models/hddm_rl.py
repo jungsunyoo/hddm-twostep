@@ -61,6 +61,14 @@ class HDDMrl(HDDM):
         self.z_share = kwargs.pop("z_share", False) # whether to share z btw 1st & 2nd stage (if z!=reg)
         self.t_share = kwargs.pop("t_share", False) # whether to share t btw 1st & 2nd stage
 
+
+        # JY added on 2022-03-15 for configuring starting point bias
+        # if second-stage starting point depends on 1st-stage parameters
+
+        self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
+
+
+
         self.wfpt_rl_class = WienerRL
 
         super(HDDMrl, self).__init__(*args, **kwargs)
@@ -266,6 +274,12 @@ class HDDMrl(HDDM):
                     self._create_family_invlogit(
                         "z2", value=0.5, g_tau=0.5 ** -2, std_std=0.05)  
                     )
+            if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+                knodes.update(
+                self._create_family_invlogit(
+                    "z_std", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
+
+                )
 
         else:
             if self.alpha:
@@ -424,7 +438,12 @@ class HDDMrl(HDDM):
                         "z2", value=0, g_tau=50 ** -2, std_std=10 # uninformative prior
                     )
                     )
-
+            if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+                knodes.update(
+                self._create_family_normal_normal_hnormal(
+                    "z_std", value=0, g_tau=50 ** -2, std_std=10 # uninformative prior
+                    )
+                )
 
             # if self.z1:
 
@@ -526,7 +545,7 @@ class HDDMrl(HDDM):
                 wfpt_parents["z1"] = knodes["z1_bottom"]
                 wfpt_parents["z2"] = knodes["z2_bottom"]
         else: # if not using z_regression
-            wfpt_parents["z0"] = 100.00    
+            wfpt_parents["z0"] = 100.00
             wfpt_parents["z1"] = 100.00
             wfpt_parents["z2"] = 100.00
             wfpt_parents['z_interaction'] = 100.00
@@ -539,6 +558,9 @@ class HDDMrl(HDDM):
 
             else:
                 wfpt_parents['z_qval'] = 0.00              
+
+        # if self.z_2_depend:
+        wfpt_parents['z_std'] = knodes['z_std'] if self.z_2_depend else 100.00
 
         # if self.z_reg:
         #     wfpt_parents['z'] = 100.00
@@ -677,7 +699,7 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0): # regression ver1: without bounds
 # def wienerRL_like_2step_reg(x, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, z0, z1, z2,t, p_outlier=0): # regression ver2: bounded, a fixed to 1
-def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, p_outlier=0): # regression ver2: bounded, a fixed to 1
+def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_std,p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -755,7 +777,8 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
         t_2,
         v_2,
         alpha2,
-        w, 
+        w,
+        z_std,
         # st,
         p_outlier=p_outlier,
         **wp
