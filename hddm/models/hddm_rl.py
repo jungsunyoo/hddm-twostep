@@ -103,7 +103,7 @@ class HDDMrl(HDDM):
                     )
                 )
 
-            if (not self.v_reg) and (not self.sep_q):    
+            if (not self.v_reg) and (not self.v_sep_q):
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "w",
@@ -306,7 +306,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if (not self.v_reg) and (not self.sep_q):
+            if (not self.v_reg) and (not self.v_sep_q):
                 knodes.update(
                     self._create_family_normal(
                         "w",
@@ -460,7 +460,7 @@ class HDDMrl(HDDM):
 
         wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.two_stage and self.sep_alpha else 100.00
 
-        if (not self.v_reg) and (not self.sep_q):    
+        if (not self.v_reg) and (not self.v_sep_q):
             wfpt_parents["w"] = knodes["w_bottom"]
         else:
             wfpt_parents["w"] = 100.00
