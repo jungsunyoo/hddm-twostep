@@ -445,6 +445,10 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double v_
     cdef double z_
     cdef double sig
+    cdef double v_2_
+    cdef double z_2_
+    cdef double a_2_
+    cdef double t_2_
 
 
     cdef np.ndarray[double, ndim=1] x1s
