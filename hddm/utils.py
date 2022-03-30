@@ -134,12 +134,16 @@ def flip_errors(data):
     # idx = data["response"] != 1
     # data.loc[idx, "rt"] = -data.loc[idx, "rt"]
 
-    idx = data["response1"] != 1
+    # idx = data["response1"] != 1
+    # data.loc[idx, "rt1"] = -data.loc[idx, "rt1"]
+    #
+    # idx = data["response2"] != 1
+    # data.loc[idx, "rt2"] = -data.loc[idx, "rt2"]
+    idx = data["isleft1"] != 1
     data.loc[idx, "rt1"] = -data.loc[idx, "rt1"]
 
-    idx = data["response2"] != 1
+    idx = data["isleft2"] != 1
     data.loc[idx, "rt2"] = -data.loc[idx, "rt2"]
-
 
 
     # # In case responses were supplied as [-1, 1]
