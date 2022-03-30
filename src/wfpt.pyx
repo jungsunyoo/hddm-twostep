@@ -614,6 +614,7 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     else: # if use 1st-stage dependent drift rate
                         # z2 = logit(v1) + Normal(0, sigma_z2)
                         # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
+                        z_sigma = np.maximum(z_sigma,0) # make sure it's positive
                         z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
 
 
