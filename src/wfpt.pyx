@@ -385,7 +385,7 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double t_2,
                       double v_2,
                       double alpha2,
-                      double w, double z_sigma,
+                      double w, double z_sigma, double z_sigma2,
 
 
                       # double st,
@@ -520,6 +520,12 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if w != 100.00:
             w = (2.718281828459**w) / (1 + 2.718281828459**w)
 
+
+
+
+
+
+
         # don't calculate pdf for first trial but still update q
         # if feedbacks[0] > qs[responses[0]]:
             # alfa = (2.718281828459**pos_alfa) / (1 + 2.718281828459**pos_alfa)
@@ -550,16 +556,22 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                 dtq_mb = Qmb[0] - Qmb[1]
                 dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
                 if v == 100.00: # if v_reg
-                    if v_qval == 0:
+                    # Transform regression parameters so that >0
+                    # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+                    # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
 
+                    if v_qval == 0:
                         if v_interaction == 100.00: # if don't use interaction term
-                            v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
+                            # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
+
+                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
+
                         else: # if use interaction term
-                            v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
                     elif v_qval == 1: # just mb
-                        v_ = v0 + (dtq_mb * v1)
+                        v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
                     elif v_qval == 2:
-                        v_ = v0 + (dtq_mf * v2) # just qmf
+                        v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
                 else: # if don't use v_reg:
                     if v_qval == 0: # use both qmb and qmf
                         qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
@@ -571,15 +583,18 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         v_ = dtq_mf * v
 
                 if z0 != 100.00: # if use z_reg:
+                    # Transform regression parameters so that >0
+
                     if z_qval == 0:
                         if z_interaction == 100.00: # if don't use interaction term
-                            z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) # use both Qvals
+                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
                         else:
-                            z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
+
                     elif z_qval == 1: # just mb
-                        z_ = z0 + (dtq_mb * z1)
+                        z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
                     elif z_qval == 2:
-                        z_ = z0 + (dtq_mf * z2) # just qmf
+                        z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
                     sig = 1/(1+np.exp(-z_))
                 else: # if don't use z_reg:
                     sig = z
@@ -617,10 +632,12 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
 
-                        # z_sigma = np.maximum(z_sigma,0) # make sure it's positive
+                        # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
                         # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
-
-                        z_2_ = np.clip(1 / (1 + np.exp(-v_*z_sigma)) , 0, 1)
+                        if z_sigma2 == 100.00: # don't use baseline
+                            z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
+                        else: # use baseline
+                            z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
 
 
 

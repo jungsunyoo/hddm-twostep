@@ -66,6 +66,7 @@ class HDDMrl(HDDM):
         # if second-stage starting point depends on 1st-stage parameters
 
         self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
+        self.z_sigma2 = kwargs.pop("z_sigma2", False)  # for model 21
 
 
 
@@ -280,6 +281,13 @@ class HDDMrl(HDDM):
                     "z_sigma", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
 
                 )
+                if self.z_sigma2:
+                    knodes.update(
+                        self._create_family_invlogit(
+                            "z_sigma2", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
+
+                    )
+
 
         else:
             if self.alpha:
@@ -444,6 +452,13 @@ class HDDMrl(HDDM):
                     "z_sigma", value=0, g_tau=50 ** -2, std_std=10 # uninformative prior
                     )
                 )
+                if self.z_sigma2:
+                    knodes.update(
+                        self._create_family_normal_normal_hnormal(
+                            "z_sigma2", value=0, g_tau=50 ** -2, std_std=10  # uninformative prior
+                        )
+                    )
+
 
             # if self.z1:
 
@@ -561,6 +576,7 @@ class HDDMrl(HDDM):
 
         # if self.z_2_depend:
         wfpt_parents['z_sigma'] = knodes['z_sigma_bottom'] if self.z_2_depend else 100.00
+        wfpt_parents['z_sigma2'] = knodes['z_sigma2_bottom'] if self.z_sigma2 else 100.00
         # wfpt_parents['z_sigma'] = 100.00
         #
         # if self.z_reg:
@@ -700,7 +716,7 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0): # regression ver1: without bounds
 # def wienerRL_like_2step_reg(x, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, z0, z1, z2,t, p_outlier=0): # regression ver2: bounded, a fixed to 1
-def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma, p_outlier=0): # regression ver2: bounded, a fixed to 1
+def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -780,6 +796,7 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
         alpha2,
         w,
         z_sigma,
+        z_sigma2,
         # st,
         p_outlier=p_outlier,
         **wp
