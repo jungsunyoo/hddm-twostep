@@ -902,5 +902,5 @@ def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1,
 
 # WienerRL = stochastic_from_dist("wienerRL", wienerRL_like)
 # WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
-# WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
-WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
+WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
+# WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
