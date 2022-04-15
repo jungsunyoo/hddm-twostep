@@ -61,36 +61,36 @@ cdef inline bint p_outlier_in_range(double p_outlier):
 
 
 
-def gain(double best_i, double secondbest_i, double x, double mu):
-    gains = []
-    for j in range(len(mu)):
-        if j == best_i:
-            # special case: this is the best action
-            g = mu[secondbest_i] - np.minimum(x,mu[secondbest_i])
-        else:
-            g = np.maximum(x, mu[best_i]) - mu[best_i]
-        gains.append(g)
-    gains = np.reshape(np.array(gains), [-1, len(x)]).transpose()
-    return gains
-
-
-
-def calculate_VPI(double mu, double std):
-    sample_size = 1000
-    q_low = 0.
-    q_high = 1.
-    x = np.random.uniform(q_low, q_high, sample_size)
-    x = np.reshape(x,[-1,1])
-    dist = st.norm(mu, np.exp(std))
-    probs = dist.pdf(x)
-    best_action_idx = np.argmax(mu)
-    tmp_mu = np.compy(mu)
-    tmp_mu[best_action_idx] = -9999.
-    second_best_action_idx = np.argmax(tmp_mu)
-
-    gains = gain(best_action_idx, second_best_action_idx, x, mu)
-
-    return np.mean(gains * probs, axis=0)
+# def gain(double best_i, double secondbest_i, double x, double mu):
+#     gains = []
+#     for j in range(len(mu)):
+#         if j == best_i:
+#             # special case: this is the best action
+#             g = mu[secondbest_i] - np.minimum(x,mu[secondbest_i])
+#         else:
+#             g = np.maximum(x, mu[best_i]) - mu[best_i]
+#         gains.append(g)
+#     gains = np.reshape(np.array(gains), [-1, len(x)]).transpose()
+#     return gains
+#
+#
+#
+# def calculate_VPI(double mu, double std):
+#     sample_size = 1000
+#     q_low = 0.
+#     q_high = 1.
+#     x = np.random.uniform(q_low, q_high, sample_size)
+#     x = np.reshape(x,[-1,1])
+#     dist = st.norm(mu, np.exp(std))
+#     probs = dist.pdf(x)
+#     best_action_idx = np.argmax(mu)
+#     tmp_mu = np.compy(mu)
+#     tmp_mu[best_action_idx] = -9999.
+#     second_best_action_idx = np.argmax(tmp_mu)
+#
+#     gains = gain(best_action_idx, second_best_action_idx, x, mu)
+#
+#     return np.mean(gains * probs, axis=0)
 
 
 
