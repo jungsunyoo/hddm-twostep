@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -610,7 +610,7 @@ class HDDMrl(HDDM):
         if self.window_size and self.window_start:
             wfpt_parents['window_start'] = self.window_start
             wfpt_parents['window_size'] = self.window_size
-        else: 
+        else:
             wfpt_parents['window_start'] = 999.00
             wfpt_parents['window_size'] = 999.00
 
