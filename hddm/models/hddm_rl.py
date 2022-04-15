@@ -610,6 +610,9 @@ class HDDMrl(HDDM):
         if self.window_size and self.window_start:
             wfpt_parents['window_start'] = self.window_start
             wfpt_parents['window_size'] = self.window_size
+        else: 
+            wfpt_parents['window_start'] = 999.00
+            wfpt_parents['window_size'] = 999.00
 
 
         # wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
