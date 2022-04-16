@@ -930,7 +930,7 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
 
         # loop through all trials in current condition
         for i in range(0, s_size):
-            if ~~~
+
             if counter[s1s[i]] > 0 and x1s[i]>0.15:
             # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
 
