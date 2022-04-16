@@ -811,7 +811,7 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
         **wp
     )
 
-def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, window_start,window_size, p_outlier=0): # regression ver2: bounded, a fixed to 1
+def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2,p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -893,8 +893,8 @@ def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1,
         z_sigma,
         z_sigma2,
         # st,
-        window_start,
-        window_size,
+        # window_start,
+        # window_size,
         p_outlier=p_outlier,
         **wp
     )
