@@ -70,6 +70,7 @@ class HDDMrl(HDDM):
 
         self.window_start = kwargs.pop("window_start", False)  # whether z_2 depends on previous stage
         self.window_size = kwargs.pop("window_size", False)  # whether z_2 depends on previous stage
+        print(self.window_start, self.window_size)
 
 
 
