@@ -929,7 +929,7 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
         #     alfa * (feedbacks[0] - qs[responses[0]])
 
         # loop through all trials in current condition
-        # print(window_size, window_start)
+        print(window_size, window_start)
         for i in range(0, s_size):
             if (window_size>0) and (window_start>0):# and (window_start <= i < window_start+window_size):
                 if counter[s1s[i]] > 0 and x1s[i]>0.15:
