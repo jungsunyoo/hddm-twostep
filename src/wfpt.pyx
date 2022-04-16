@@ -930,125 +930,125 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
 
         # loop through all trials in current condition
         for i in range(0, s_size):
-
-            if counter[s1s[i]] > 0 and x1s[i]>0.15:
-            # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
-
-
-                # 1st stage
-                planets = state_combinations[s1s[i]]
-                Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
-                # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-
-                # if qval != 100: #
+            if (window_size>0) and (window_start <= i < window_start+window_size):
+                if counter[s1s[i]] > 0 and x1s[i]>0.15:
+                # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
 
 
-                # dtq = qs[1] - qs[0]
-                dtq_mb = Qmb[0] - Qmb[1]
-                dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
-                if v == 100.00: # if v_reg
-                    # Transform regression parameters so that >0
-                    # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
-                    # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+                    # 1st stage
+                    planets = state_combinations[s1s[i]]
+                    Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
+                    # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
 
-                    if v_qval == 0:
-                        if v_interaction == 100.00: # if don't use interaction term
-                            # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
-
-                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
-
-                        else: # if use interaction term
-                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
-                    elif v_qval == 1: # just mb
-                        v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
-                    elif v_qval == 2:
-                        v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
-                else: # if don't use v_reg:
-                    if v_qval == 0: # use both qmb and qmf
-                        qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-                        dtq = qs[1] - qs[0]
-                        v_ = dtq * v
-                    elif v_qval == 1:
-                        v_ = dtq_mb * v
-                    elif v_qval==2:
-                        v_ = dtq_mf * v
-
-                if z0 != 100.00: # if use z_reg:
-                    # Transform regression parameters so that >0
-
-                    if z_qval == 0:
-                        if z_interaction == 100.00: # if don't use interaction term
-                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
-                        else:
-                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
-
-                    elif z_qval == 1: # just mb
-                        z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
-                    elif z_qval == 2:
-                        z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
-                    sig = 1/(1+np.exp(-z_))
-                else: # if don't use z_reg:
-                    sig = z
-
-                rt = x1s[i]
+                    # if qval != 100: #
 
 
-                # if isleft1s[i] == 0: # if chosen right
-                #     rt = -rt
-                #     v_ = -v_
+                    # dtq = qs[1] - qs[0]
+                    dtq_mb = Qmb[0] - Qmb[1]
+                    dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
+                    if v == 100.00: # if v_reg
+                        # Transform regression parameters so that >0
+                        # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+                        # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
 
-                # p = full_pdf(rt, (dtq * v), sv, a, z,
-                #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
-                p = full_pdf(rt, v_, sv, a, sig,
-                             sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
-                # If one probability = 0, the log sum will be -Inf
-                p = p * (1 - p_outlier) + wp_outlier
-                if p == 0:
-                    return -np.inf
-                sum_logp += log(p)
+                        if v_qval == 0:
+                            if v_interaction == 100.00: # if don't use interaction term
+                                # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
+
+                                v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
+
+                            else: # if use interaction term
+                                v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
+                        elif v_qval == 1: # just mb
+                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
+                        elif v_qval == 2:
+                            v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
+                    else: # if don't use v_reg:
+                        if v_qval == 0: # use both qmb and qmf
+                            qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+                            dtq = qs[1] - qs[0]
+                            v_ = dtq * v
+                        elif v_qval == 1:
+                            v_ = dtq_mb * v
+                        elif v_qval==2:
+                            v_ = dtq_mf * v
+
+                    if z0 != 100.00: # if use z_reg:
+                        # Transform regression parameters so that >0
+
+                        if z_qval == 0:
+                            if z_interaction == 100.00: # if don't use interaction term
+                                z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
+                            else:
+                                z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
+
+                        elif z_qval == 1: # just mb
+                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
+                        elif z_qval == 2:
+                            z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
+                        sig = 1/(1+np.exp(-z_))
+                    else: # if don't use z_reg:
+                        sig = z
+
+                    rt = x1s[i]
 
 
-                # # # 2nd stage
-                if two_stage == 1.00:
-
-                    v_2_ = v if v_2==100.00 else v_2
-                    a_2_ = a if a_2 == 100.00 else a_2
-
-                    # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
-                    if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
-                        z_2_ = z if z_2 == 0.5 else z_2
-                    else: # if use 1st-stage dependent drift rate
-                        # z2 = logit(v1) + Normal(0, sigma_z2)
-                        # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
-
-
-
-                        # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
-                        # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
-                        if z_sigma2 == 100.00: # don't use baseline
-                            z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
-                        else: # use baseline
-                            z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
-
-
-
-
-
-
-                    t_2_ = t if t_2 == 100.00 else t_2
-
-                    qs = qs_mb[s2s[i],:]
-                    dtq = qs[1] - qs[0]
-                    rt = x2s[i]
-                    # if isleft2s[i] == 0:
-                    #     dtq = -dtq
+                    # if isleft1s[i] == 0: # if chosen right
                     #     rt = -rt
-                    p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
+                    #     v_ = -v_
+
+                    # p = full_pdf(rt, (dtq * v), sv, a, z,
+                    #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
+                    p = full_pdf(rt, v_, sv, a, sig,
+                                 sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
                     # If one probability = 0, the log sum will be -Inf
                     p = p * (1 - p_outlier) + wp_outlier
                     if p == 0:
                         return -np.inf
                     sum_logp += log(p)
+
+
+                    # # # 2nd stage
+                    if two_stage == 1.00:
+
+                        v_2_ = v if v_2==100.00 else v_2
+                        a_2_ = a if a_2 == 100.00 else a_2
+
+                        # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
+                        if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
+                            z_2_ = z if z_2 == 0.5 else z_2
+                        else: # if use 1st-stage dependent drift rate
+                            # z2 = logit(v1) + Normal(0, sigma_z2)
+                            # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
+
+
+
+                            # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
+                            # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
+                            if z_sigma2 == 100.00: # don't use baseline
+                                z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
+                            else: # use baseline
+                                z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
+
+
+
+
+
+
+                        t_2_ = t if t_2 == 100.00 else t_2
+
+                        qs = qs_mb[s2s[i],:]
+                        dtq = qs[1] - qs[0]
+                        rt = x2s[i]
+                        # if isleft2s[i] == 0:
+                        #     dtq = -dtq
+                        #     rt = -rt
+                        p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
+                        # If one probability = 0, the log sum will be -Inf
+                        p = p * (1 - p_outlier) + wp_outlier
+                        if p == 0:
+                            return -np.inf
+                        sum_logp += log(p)
 
 
             # update Q values, regardless of pdf
