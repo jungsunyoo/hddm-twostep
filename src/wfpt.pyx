@@ -776,7 +776,7 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
                       double v_2,
                       double alpha2,
                       double w, double z_sigma, double z_sigma2,
-                      # double window_start, double window_size,
+                      double window_start, double window_size,
 
 
                       # double st,
