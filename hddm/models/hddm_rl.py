@@ -607,12 +607,12 @@ class HDDMrl(HDDM):
             # wfpt_parents['z_2'] = 100.00
             wfpt_parents['t_2'] = 100.00
 
-        # if self.window_size and self.window_start:
-        #     wfpt_parents['window_start'] = self.window_start
-        #     wfpt_parents['window_size'] = self.window_size
-        # else:
-        #     wfpt_parents['window_start'] = 999.00
-        #     wfpt_parents['window_size'] = 999.00
+        if self.window_size and self.window_start:
+            wfpt_parents['window_start'] = self.window_start
+            wfpt_parents['window_size'] = self.window_size
+        else:
+            wfpt_parents['window_start'] = 999.00
+            wfpt_parents['window_size'] = 999.00
 
 
         # wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
@@ -902,5 +902,6 @@ def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1,
 
 # WienerRL = stochastic_from_dist("wienerRL", wienerRL_like)
 # WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
-WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
-# WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
+# WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
+WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
+#
