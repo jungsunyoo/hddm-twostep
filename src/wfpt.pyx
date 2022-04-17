@@ -956,14 +956,14 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
                             if v_interaction == 100.00: # if don't use interaction term
                                 # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
 
-                                v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
+                                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
 
                             else: # if use interaction term
-                                v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
+                                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
                         elif v_qval == 1: # just mb
-                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
+                            v_ = v0 + (dtq_mb * v1)
                         elif v_qval == 2:
-                            v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
+                            v_ = v0 + (dtq_mf * v2) # just qmf
                     else: # if don't use v_reg:
                         if v_qval == 0: # use both qmb and qmf
                             qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
@@ -979,14 +979,14 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
 
                         if z_qval == 0:
                             if z_interaction == 100.00: # if don't use interaction term
-                                z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
+                                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) # use both Qvals
                             else:
-                                z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
+                                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
 
                         elif z_qval == 1: # just mb
-                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
+                            z_ = z0 + (dtq_mb * z1)
                         elif z_qval == 2:
-                            z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
+                            z_ = z0 + (dtq_mf * z2) # just qmf
                         sig = 1/(1+np.exp(-z_))
                     else: # if don't use z_reg:
                         sig = z
@@ -1027,9 +1027,9 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
                             # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
                             # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
                             if z_sigma2 == 100.00: # don't use baseline
-                                z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
+                                z_2_ = 1 / (1 + np.exp(-v_*z_sigma))
                             else: # use baseline
-                                z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
+                                z_2_ = 1 / (1 + np.exp(-(v_ * z_sigma + z_sigma2)))
 
 
 
