@@ -68,6 +68,8 @@ class HDDMrl(HDDM):
         self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
         self.z_sigma2 = kwargs.pop("z_sigma2", False)  # for model 21
 
+        self.free_z_2 = kwargs.pop("free_z_2",False) # free parameter for z_2
+
         self.window_start = kwargs.pop("window_start", False)  # whether z_2 depends on previous stage
         self.window_size = kwargs.pop("window_size", False)  # whether z_2 depends on previous stage
         # print(self.window_start, self.window_size)

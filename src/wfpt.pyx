@@ -1017,8 +1017,10 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
 
                         # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
                         if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
-                            z_2_ = z if z_2 == 0.5 else z_2
-                        else: # if use 1st-stage dependent drift rate
+                            # z_2_ = z if z_2 == 0.5 else z_2
+                            z_2_ = z_2
+                        else: # if use 1st-stage dependent dr
+                            # ift rate
                             # z2 = logit(v1) + Normal(0, sigma_z2)
                             # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
 
