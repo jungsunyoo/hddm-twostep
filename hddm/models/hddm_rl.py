@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg#, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -70,8 +70,8 @@ class HDDMrl(HDDM):
 
         self.free_z_2 = kwargs.pop("free_z_2",False) # free parameter for z_2
 
-        self.window_start = kwargs.pop("window_start", False)  # whether z_2 depends on previous stage
-        self.window_size = kwargs.pop("window_size", False)  # whether z_2 depends on previous stage
+        self.window_start = kwargs.pop("window_start", False)
+        self.window_size = kwargs.pop("window_size", False)
         # print(self.window_start, self.window_size)
 
 
@@ -813,93 +813,93 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
         **wp
     )
 
-def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2,window_start,window_size,p_outlier=0): # regression ver2: bounded, a fixed to 1
-
-    wiener_params = {
-        "err": 1e-4,
-        "n_st": 2,
-        "n_sz": 2,
-        "use_adaptive": 1,
-        "simps_err": 1e-3,
-        "w_outlier": 0.1,
-    }
-    wp = wiener_params
-    response1 = x["response1"].values.astype(int)
-    response2 = x["response2"].values.astype(int)
-    state1 = x["state1"].values.astype(int)
-    state2 = x["state2"].values.astype(int)
-
-    # isleft1 = x["isleft1"].values.astype(int)
-    # isleft2 = x["isleft2"].values.astype(int)
-
-
-    q = x["q_init"].iloc[0]
-    feedback = x["feedback"].values.astype(float)
-    split_by = x["split_by"].values.astype(int)
-
-
-    # JY added for two-step tasks on 2021-12-05
-    # nstates = x["nstates"].values.astype(int)
-    nstates = max(x["state2"].values.astype(int)) + 1
-
-    # # JY added for which q-value to use (if sep, qmb or qmf)
-    # qval = 0 # default: simultaneous
-
-    # if
-
-
-    return wiener_like_rlddm_2step_reg_sliding_window(
-        x["rt1"].values,
-        x["rt2"].values,
-
-        # isleft1,
-        # isleft2,
-
-        state1,
-        state2,
-        response1,
-        response2,
-        feedback,
-        split_by,
-        q,
-        alpha,
-        pos_alpha,
-        # w, # added for two-step task
-        gamma, # added for two-step task
-        lambda_, # added for two-step task
-        v0, # intercept for first stage rt regression
-        v1, # slope for mb
-        v2, # slobe for mf
-        v, # don't use second stage for now
-        # sv,
-        a,
-        z0, # bias: added for intercept regression 1st stage
-        z1, # bias: added for slope regression mb 1st stage
-        z2, # bias: added for slope regression mf 1st stage
-        z,
-        # sz,
-        t,
-        nstates,
-        v_qval,
-        z_qval,
-        v_interaction,
-        z_interaction,
-        two_stage,
-
-        a_2,
-        z_2,
-        t_2,
-        v_2,
-        alpha2,
-        w,
-        z_sigma,
-        z_sigma2,
-        # st,
-        window_start,
-        window_size,
-        p_outlier=p_outlier,
-        **wp
-    )
+# def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2,window_start,window_size,p_outlier=0): # regression ver2: bounded, a fixed to 1
+#
+#     wiener_params = {
+#         "err": 1e-4,
+#         "n_st": 2,
+#         "n_sz": 2,
+#         "use_adaptive": 1,
+#         "simps_err": 1e-3,
+#         "w_outlier": 0.1,
+#     }
+#     wp = wiener_params
+#     response1 = x["response1"].values.astype(int)
+#     response2 = x["response2"].values.astype(int)
+#     state1 = x["state1"].values.astype(int)
+#     state2 = x["state2"].values.astype(int)
+#
+#     # isleft1 = x["isleft1"].values.astype(int)
+#     # isleft2 = x["isleft2"].values.astype(int)
+#
+#
+#     q = x["q_init"].iloc[0]
+#     feedback = x["feedback"].values.astype(float)
+#     split_by = x["split_by"].values.astype(int)
+#
+#
+#     # JY added for two-step tasks on 2021-12-05
+#     # nstates = x["nstates"].values.astype(int)
+#     nstates = max(x["state2"].values.astype(int)) + 1
+#
+#     # # JY added for which q-value to use (if sep, qmb or qmf)
+#     # qval = 0 # default: simultaneous
+#
+#     # if
+#
+#
+#     return wiener_like_rlddm_2step_reg_sliding_window(
+#         x["rt1"].values,
+#         x["rt2"].values,
+#
+#         # isleft1,
+#         # isleft2,
+#
+#         state1,
+#         state2,
+#         response1,
+#         response2,
+#         feedback,
+#         split_by,
+#         q,
+#         alpha,
+#         pos_alpha,
+#         # w, # added for two-step task
+#         gamma, # added for two-step task
+#         lambda_, # added for two-step task
+#         v0, # intercept for first stage rt regression
+#         v1, # slope for mb
+#         v2, # slobe for mf
+#         v, # don't use second stage for now
+#         # sv,
+#         a,
+#         z0, # bias: added for intercept regression 1st stage
+#         z1, # bias: added for slope regression mb 1st stage
+#         z2, # bias: added for slope regression mf 1st stage
+#         z,
+#         # sz,
+#         t,
+#         nstates,
+#         v_qval,
+#         z_qval,
+#         v_interaction,
+#         z_interaction,
+#         two_stage,
+#
+#         a_2,
+#         z_2,
+#         t_2,
+#         v_2,
+#         alpha2,
+#         w,
+#         z_sigma,
+#         z_sigma2,
+#         # st,
+#         window_start,
+#         window_size,
+#         p_outlier=p_outlier,
+#         **wp
+#     )
 
 
 # WienerRL = stochastic_from_dist("wienerRL", wienerRL_like)
