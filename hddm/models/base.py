@@ -1147,7 +1147,9 @@ class HDDMBase(AccumulatorModel):
                 if not self.a_fix:
                     params.append('a')
             else:
-                params = ['v', 'z']
+                params = ['v']
+                if bias:
+                    params.append('z')
                 # params.append('v')
                 # params.append('z')
 
@@ -1168,7 +1170,8 @@ class HDDMBase(AccumulatorModel):
                                 params.append('z_2')
                 else:
                     params.append('v_2')
-                    params.append('z_2')
+                    if self.free_z_2:
+                        params.append('z_2')
 
                             
 
