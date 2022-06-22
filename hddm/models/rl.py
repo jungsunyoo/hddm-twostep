@@ -297,7 +297,7 @@ def RL_like(x, v, alpha, pos_alpha, z=0.5, p_outlier=0):
         **wp
     )
 
-def RL_like_2step(x, v, v_2, alpha, pos_alpha, gamma, lambda_, w, z=0.5, z_2 = 0.5, p_outlier=0):
+def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, lambda_, w, z=0.5, z_2 = 0.5, p_outlier=0):
 
     # wiener_params = {
     #     "err": 1e-4,
