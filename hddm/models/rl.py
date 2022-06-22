@@ -26,7 +26,7 @@ class Hrl(HDDM):
         self.sep_alpha = kwargs.pop("sep_alpha", False)  # use different learning rates for second stage
         self.lambda_ = kwargs.pop("lambda_", False)  # added for two-step task
 
-
+        self.choice_model = kwargs.pop("choice_model", True)
 
         # below: unneecessary for choice model
         self.v_reg = kwargs.pop("v_reg", False)  # added for regression in two-step task
@@ -69,15 +69,15 @@ class Hrl(HDDM):
         super(Hrl, self).__init__(*args, **kwargs)
 
     def _create_stochastic_knodes(self, include):
-        params = ["v"]
-        if "p_outlier" in self.include:
-            params.append("p_outlier")
-        if "z" in self.include:
-            params.append("z")
-        if self.two_stage:
-            params.append("v_2")
-            params.append("z_2")
-        include = set(params)
+        # params = ["v"]
+        # if "p_outlier" in self.include:
+        #     params.append("p_outlier")
+        # if "z" in self.include:
+        #     params.append("z")
+        # if self.two_stage:
+        #     params.append("v_2")
+        #     params.append("z_2")
+        # include = set(params)
 
         knodes = super(Hrl, self)._create_stochastic_knodes(include)
         if self.non_centered:
