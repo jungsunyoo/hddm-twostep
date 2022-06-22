@@ -26,6 +26,46 @@ class Hrl(HDDM):
         self.sep_alpha = kwargs.pop("sep_alpha", False)  # use different learning rates for second stage
         self.lambda_ = kwargs.pop("lambda_", False)  # added for two-step task
 
+
+
+        # below: unneecessary for choice model
+        self.v_reg = kwargs.pop("v_reg", False)  # added for regression in two-step task
+        self.z_reg = kwargs.pop("z_reg", False)
+        self.a_fix = kwargs.pop("a_fix", False)
+
+        # self.two_stage = kwargs.pop("two_stage", False)  # whether to RLDDM just 1st stage or both stages
+        # self.sep_alpha = kwargs.pop("sep_alpha", False)  # use different learning rates for second stage
+        #
+        self.v_sep_q = kwargs.pop("v_sep_q",
+                                  False)  # In 1st stage, whether to use Qmf/Qmb separately for v (drift rate) regression
+        self.v_qmb = kwargs.pop("v_qmb", False)  # Given sep_q, True = qmb, False = Qmf
+        self.v_interaction = kwargs.pop("v_interaction", False)  # whether to include interaction term for v
+
+        self.z_sep_q = kwargs.pop("z_sep_q",
+                                  False)  # In 1st stage, whether to use Qmf/Qmb separately for z (starting point) regression
+        self.z_qmb = kwargs.pop("z_qmb", False)  # Given sep_q, True = qmb, False = Qmf
+        self.z_interaction = kwargs.pop("z_interaction", False)  # whether to include interaction term for z
+
+        self.a_share = kwargs.pop("a_share", False)  # whether to share a btw 1st & 2nd stage (if a!=1)
+        self.v_share = kwargs.pop("v_share", False)  # whether to share v btw 1st & 2nd stage (if v!=reg)
+        self.z_share = kwargs.pop("z_share", False)  # whether to share z btw 1st & 2nd stage (if z!=reg)
+        self.t_share = kwargs.pop("t_share", False)  # whether to share t btw 1st & 2nd stage
+
+        # JY added on 2022-03-15 for configuring starting point bias
+        # if second-stage starting point depends on 1st-stage parameters
+
+        self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
+        self.z_sigma2 = kwargs.pop("z_sigma2", False)  # for model 21
+
+        self.free_z_2 = kwargs.pop("free_z_2", False)  # free parameter for z_2
+
+        self.window_start = kwargs.pop("window_start", False)
+        self.window_size = kwargs.pop("window_size", False)
+
+
+
+
+
         super(Hrl, self).__init__(*args, **kwargs)
 
     def _create_stochastic_knodes(self, include):
