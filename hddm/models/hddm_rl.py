@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, RL_like_2step#, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, wiener_like_rl_2step #, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -927,7 +927,7 @@ def RL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambd
     nstates = max(x["state2"].values.astype(int)) + 1
 
 
-    return RL_like_2step(
+    return wiener_like_rl_2step(
         x["rt1"].values,
         x["rt2"].values,
         state1,
@@ -956,4 +956,4 @@ def RL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambd
 # WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
 # WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
 # WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
-WienerRL = stochastic_from_dist("RL_like_2step", RL_like_2step)
+WienerRL = stochastic_from_dist("RL_like_2step", wiener_like_rl_2step)

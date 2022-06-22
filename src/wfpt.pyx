@@ -1102,7 +1102,7 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
 
 
 # JY added on 2022-06-22 for choice model
-def like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
+def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       np.ndarray[double, ndim=1] x2, # 2nd-stage RT
                       np.ndarray[long,ndim=1] s1, # 1st-stage state
                       np.ndarray[long,ndim=1] s2, # 2nd-stage state
