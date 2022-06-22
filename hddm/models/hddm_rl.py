@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, wiener_like_rl_2step #, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg #, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -901,59 +901,7 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
 #         **wp
 #     )
 
-def RL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, p_outlier=0): # regression ver2: bounded, a fixed to 1
-
-    wiener_params = {
-        "err": 1e-4,
-        "n_st": 2,
-        "n_sz": 2,
-        "use_adaptive": 1,
-        "simps_err": 1e-3,
-        "w_outlier": 0.1,
-    }
-    wp = wiener_params
-    response1 = x["response1"].values.astype(int)
-    response2 = x["response2"].values.astype(int)
-    state1 = x["state1"].values.astype(int)
-    state2 = x["state2"].values.astype(int)
-
-    q = x["q_init"].iloc[0]
-    feedback = x["feedback"].values.astype(float)
-    split_by = x["split_by"].values.astype(int)
-
-
-    # JY added for two-step tasks on 2021-12-05
-    # nstates = x["nstates"].values.astype(int)
-    nstates = max(x["state2"].values.astype(int)) + 1
-
-
-    return wiener_like_rl_2step(
-        x["rt1"].values,
-        x["rt2"].values,
-        state1,
-        state2,
-        response1,
-        response2,
-        feedback,
-        split_by,
-        q,
-        alpha,
-        pos_alpha,
-        gamma, # added for two-step task
-        lambda_, # added for two-step task
-        v, # don't use second stage for now
-        z,
-        nstates,
-        two_stage,
-        z_2,
-        v_2,
-        alpha2,
-        w,
-        p_outlier=p_outlier,
-        **wp
-    )
 # WienerRL = stochastic_from_dist("wienerRL", wienerRL_like)
 # WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
-# WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
+WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
 # WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
-WienerRL = stochastic_from_dist("RL_like_2step", wiener_like_rl_2step)
