@@ -1140,6 +1140,8 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef Py_ssize_t s_size
     cdef int s
     cdef double p
+    cdef double drift
+
     cdef double sum_logp = 0
     cdef double wp_outlier = w_outlier * p_outlier
     cdef double alfa
@@ -1196,7 +1198,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
     # if alpha2==100.00: # if either only 1st stage or don't share lr:
 
-    print(nstates)
+
     # unique represent # of conditions
     for j in range(unique.shape[0]):
         s = unique[j]
@@ -1261,6 +1263,12 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                 # # # # 2nd stage
                 if two_stage == 1.00:
+
+                    # v_2_ =  v if v_2 = 100.00 else v_2
+                    if v_2 == 100.00:
+                        v_2 = v
+
+
                     qs = qs_mb[s2s[i],:]
                     drift = (qs[1] - qs[0]) * v_2
                     if drift == 0:
