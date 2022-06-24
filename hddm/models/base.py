@@ -1307,10 +1307,12 @@ class HDDMBase(AccumulatorModel):
         # JY modified on 2022-01-11 for 2step regression
         # JY modified on 2022-02-01 for factorial design
             if not self.a_fix:
-                wfpt_parents["a"] = knodes["a_bottom"]
+                if not self.choice_model:
+                    wfpt_parents["a"] = knodes["a_bottom"]
             if not self.v_reg:
                 wfpt_parents["v"] = knodes["v_bottom"]
-            wfpt_parents["t"] = knodes["t_bottom"]
+            if not self.choice_model:
+                wfpt_parents["t"] = knodes["t_bottom"]
 
 
 
@@ -1320,11 +1322,13 @@ class HDDMBase(AccumulatorModel):
 
             if self.two_stage:
                 if not self.a_share:
-                    wfpt_parents['a_2'] = knodes['a_2_bottom']
+                    if not self.choice_model:
+                        wfpt_parents['a_2'] = knodes['a_2_bottom']
                 if not self.v_share:
                     wfpt_parents['v_2'] = knodes['v_2_bottom']
                 if not self.t_share:
-                    wfpt_parents['t_2'] = knodes['t_2_bottom']
+                    if not self.choice_model:
+                        wfpt_parents['t_2'] = knodes['t_2_bottom']
                 # if not self.z_share:
                 #     if bias:
                 #         wfpt_parents['z_2'] = knodes['z_2_bottom']
