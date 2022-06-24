@@ -1151,7 +1151,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double gamma_
     cdef double lambda__
 
-    # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
+    cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
     cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
     cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
 
