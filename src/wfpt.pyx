@@ -1196,7 +1196,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
     # if alpha2==100.00: # if either only 1st stage or don't share lr:
 
-
+    print(nstates)
     # unique represent # of conditions
     for j in range(unique.shape[0]):
         s = unique[j]
