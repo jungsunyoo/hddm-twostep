@@ -231,6 +231,7 @@ class Hrl(HDDM):
 
     def _create_wfpt_parents_dict(self, knodes):
         wfpt_parents = OrderedDict()
+        wfpt_parents = super(Hrl, self)._create_wfpt_parents_dict(knodes)
         wfpt_parents["v"] = knodes["v_bottom"]
         wfpt_parents["v_2"] = knodes["v_2_bottom"] if self.two_stage else 100.00
         wfpt_parents["alpha"] = knodes["alpha_bottom"]
