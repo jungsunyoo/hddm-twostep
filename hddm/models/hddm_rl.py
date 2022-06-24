@@ -61,7 +61,7 @@ class HDDMrl(HDDM):
         self.z_share = kwargs.pop("z_share", False) # whether to share z btw 1st & 2nd stage (if z!=reg)
         self.t_share = kwargs.pop("t_share", False) # whether to share t btw 1st & 2nd stage
 
-
+        self.choice_model = kwargs.pop("choice_model", False)
         # JY added on 2022-03-15 for configuring starting point bias
         # if second-stage starting point depends on 1st-stage parameters
 
