@@ -1160,6 +1160,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double dtq_mf
 
     cdef long s_
+    cdef long a_
 
     cdef np.ndarray[double, ndim=1] x1s
     cdef np.ndarray[double, ndim=1] x2s
