@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rl, wiener_like_rl_2step
+from wfpt import wiener_like_rl, wiener_like_rl_2step, wiener_like_rl_2step_sliding_window
 from collections import OrderedDict
 
 
@@ -376,5 +376,88 @@ def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, lambda_
         p_outlier=p_outlier,
         **wp
     )
+
+
+def RL_like_2step_sliding_window(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, lambda_, w, window_start, window_size, z=0.5, z_2 = 0.5, p_outlier=0):
+
+    # wiener_params = {
+    #     "err": 1e-4,
+    #     "n_st": 2,
+    #     "n_sz": 2,
+    #     "use_adaptive": 1,
+    #     "simps_err": 1e-3,
+    #     "w_outlier": 0.1,
+    # }
+    # sum_logp = 0
+    # wp = wiener_params
+    # response = x["response"].values.astype(int)
+    # q = x["q_init"].iloc[0]
+    # feedback = x["feedback"].values.astype(float)
+    # split_by = x["split_by"].values.astype(int)
+    # return wiener_like_rl_2step(
+    #     response,
+    #     feedback,
+    #     split_by,
+    #     q,
+    #     alpha,
+    #     pos_alpha,
+    #     v,
+    #     z,
+    #     p_outlier=p_outlier,
+    #     **wp
+    # )
+
+    wiener_params = {
+        "err": 1e-4,
+        "n_st": 2,
+        "n_sz": 2,
+        "use_adaptive": 1,
+        "simps_err": 1e-3,
+        "w_outlier": 0.1,
+    }
+    wp = wiener_params
+    response1 = x["response1"].values.astype(int)
+    response2 = x["response2"].values.astype(int)
+    state1 = x["state1"].values.astype(int)
+    state2 = x["state2"].values.astype(int)
+
+    q = x["q_init"].iloc[0]
+    feedback = x["feedback"].values.astype(float)
+    split_by = x["split_by"].values.astype(int)
+
+
+    # JY added for two-step tasks on 2021-12-05
+    # nstates = x["nstates"].values.astype(int)
+    nstates = max(x["state2"].values.astype(int)) + 1
+
+
+    return wiener_like_rl_2step_sliding_window(
+        x["rt1"].values,
+        x["rt2"].values,
+        state1,
+        state2,
+        response1,
+        response2,
+        feedback,
+        split_by,
+        q,
+        alpha,
+        pos_alpha,
+        gamma, # added for two-step task
+        lambda_, # added for two-step task
+        v, # don't use second stage for now
+        z,
+        nstates,
+        two_stage,
+        z_2,
+        v_2,
+        alpha2,
+        w,
+        window_start,
+        window_size,
+        p_outlier=p_outlier,
+        **wp
+    )
 # RL = stochastic_from_dist("RL", RL_like)
-RL_2step = stochastic_from_dist("RL_2step", RL_like_2step)
+# RL_2step = stochastic_from_dist("RL_2step", RL_like_2step)
+RL_2step_sliding_window = stochastic_from_dist("RL_2step_sliding_window", RL_like_2step_sliding_window)
