@@ -243,18 +243,22 @@ class Hrl(HDDM):
 
         wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.two_stage else 100.00
         wfpt_parents["w"] = knodes["w_bottom"] if self.two_stage else 100.00
-        wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.00
-        if self.two_stage: # two stage RLDDM
-            wfpt_parents['two_stage'] = 1.00
-        else:
-            wfpt_parents['two_stage'] = 0.00
-        return wfpt_parents
+        wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.0
+
         if self.window_size is False:
             wfpt_parents['window_start'] = -1.00
             wfpt_parents['window_size'] = -1.00
         else:
             wfpt_parents['window_start'] = self.window_start
             wfpt_parents['window_size'] = self.window_size
+
+        if self.two_stage: # two stage RLDDM
+            wfpt_parents['two_stage'] = 1.00
+        else:
+            wfpt_parents['two_stage'] = 0.00
+            
+        return wfpt_parents
+
     # def _create_wfpt_knode(self, knodes):
     #     wfpt_parents = self._create_wfpt_parents_dict(knodes)
     #     return Knode(
