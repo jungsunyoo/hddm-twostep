@@ -248,7 +248,12 @@ class Hrl(HDDM):
         else:
             wfpt_parents['two_stage'] = 0.00
         return wfpt_parents
-
+        if self.window_size is False:
+            wfpt_parents['window_start'] = -1.00
+            wfpt_parents['window_size'] = -1.00
+        else:
+            wfpt_parents['window_start'] = self.window_start
+            wfpt_parents['window_size'] = self.window_size
     # def _create_wfpt_knode(self, knodes):
     #     wfpt_parents = self._create_wfpt_parents_dict(knodes)
     #     return Knode(
