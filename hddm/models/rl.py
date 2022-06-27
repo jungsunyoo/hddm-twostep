@@ -21,7 +21,8 @@ class Hrl(HDDM):
         self.dual = kwargs.pop("dual", False)
         self.alpha = kwargs.pop("alpha", True)
         self.z = kwargs.pop("z", False)
-        self.rl_class = RL_2step
+        # self.rl_class = RL_2step
+        self.rl_class = RL_2step_sliding_window
         self.two_stage = kwargs.pop("two_stage", False) # whether to RLDDM just 1st stage or both stages
         self.sep_alpha = kwargs.pop("sep_alpha", False)  # use different learning rates for second stage
         self.lambda_ = kwargs.pop("lambda_", False)  # added for two-step task
