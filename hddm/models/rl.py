@@ -256,7 +256,7 @@ class Hrl(HDDM):
             wfpt_parents['two_stage'] = 1.00
         else:
             wfpt_parents['two_stage'] = 0.00
-            
+
         return wfpt_parents
 
     # def _create_wfpt_knode(self, knodes):

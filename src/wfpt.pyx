@@ -385,8 +385,365 @@ def wiener_like_rlddm(np.ndarray[double, ndim=1] x,
 #
 #     return sum_logp
 
+# # JY added on 2022-01-03 for simultaneous regression on two-step tasks
+# def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
+#                       np.ndarray[double, ndim=1] x2, # 2nd-stage RT
+#                       # np.ndarray[long, ndim=1] isleft1, # whether left response 1st-stage,
+#                       # np.ndarray[long, ndim=1] isleft2, # whether left response 2nd-stage
+#                       np.ndarray[long,ndim=1] s1, # 1st-stage state
+#                       np.ndarray[long,ndim=1] s2, # 2nd-stage state
+#                       np.ndarray[long, ndim=1] response1,
+#                       np.ndarray[long, ndim=1] response2,
+#                       np.ndarray[double, ndim=1] feedback,
+#                       np.ndarray[long, ndim=1] split_by,
+#                       double q, double alpha, double pos_alpha,
+#
+#                       # double w,
+#                       double gamma,
+#                       double lambda_,
+#
+#                       double v0, double v1, double v2,
+#                       double v, # don't use second stage
+#                       # double sv,
+#                       double a,
+#                       double z0, double z1, double z2,
+#                       double z,
+#                       # double sz,
+#                       double t,
+#                       int nstates,
+#                       double v_qval, double z_qval,
+#                       double v_interaction, double z_interaction,
+#                       double two_stage,
+#
+#                       double a_2,
+#                       double z_2,
+#                       double t_2,
+#                       double v_2,
+#                       double alpha2,
+#                       double w, double z_sigma, double z_sigma2,
+#
+#
+#                       # double st,
+#
+#                       double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
+#                       double p_outlier=0, double w_outlier=0,
+#                       ):
+#
+#     # if pos_alpha==100.00:
+#     #     pos_alfa = alpha
+#     # else:
+#     #     pos_alfa = pos_alpha
+#
+#     if a==100.00: # if fixed threshold
+#         a = 1
+#
+#     # if a_2 == 100.00: # if shared threshold
+#     #     a_2 = a
+#     # this part is in later if statement in 2nd stage
+#
+#
+#     # cdef double a = 1
+#     cdef double sz = 0
+#     cdef double st = 0
+#     cdef double sv = 0
+#
+#
+#     cdef Py_ssize_t size = x1.shape[0]
+#     cdef Py_ssize_t i, j
+#     cdef Py_ssize_t s_size
+#     cdef int s
+#     cdef double p
+#     cdef double sum_logp = 0
+#     cdef double wp_outlier = w_outlier * p_outlier
+#     cdef double alfa
+#     cdef double pos_alfa
+#     cdef double alfa2
+#
+#     cdef double gamma_
+#     cdef double lambda__
+#
+#     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
+#     cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+#     cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+#
+#
+#
+#
+#     cdef double dtQ1
+#     cdef double dtQ2
+#
+#     cdef double dtq_mb
+#     cdef double dtq_mf
+#
+#     cdef long s_
+#     cdef long a_
+#     cdef double v_
+#     cdef double z_
+#     cdef double sig
+#     cdef double v_2_
+#     cdef double z_2_
+#     cdef double a_2_
+#     cdef double t_2_
+#
+#
+#     cdef np.ndarray[double, ndim=1] x1s
+#     cdef np.ndarray[double, ndim=1] x2s
+#     cdef np.ndarray[double, ndim=1] feedbacks
+#     cdef np.ndarray[long, ndim=1] responses1
+#     cdef np.ndarray[long, ndim=1] responses2
+#     cdef np.ndarray[long, ndim=1] unique = np.unique(split_by)
+#
+#     cdef np.ndarray[long, ndim=1] s1s
+#     cdef np.ndarray[long, ndim=1] s2s
+#     # cdef np.ndarray[long, ndim=1] isleft1s
+#     # cdef np.ndarray[long, ndim=1] isleft2s
+#
+#     # Added by Jungsun Yoo on 2021-11-27 for two-step tasks
+#     # parameters added for two-step
+#
+#
+#     cdef np.ndarray[long, ndim=1] planets
+#     cdef np.ndarray[double, ndim=1] counter = np.zeros(comb(nstates,2,exact=True))
+#     cdef np.ndarray[double, ndim=1] Qmb
+#     cdef double dtq
+#     cdef double rt
+#     cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
+#     cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
+#
+#     if not p_outlier_in_range(p_outlier):
+#         return -np.inf
+#
+#     if pos_alpha==100.00:
+#         pos_alfa = alpha
+#     else:
+#         pos_alfa = pos_alpha
+#
+#     # if alpha2==100.00: # if either only 1st stage or don't share lr:
+#
+#
+#     # unique represent # of conditions
+#     for j in range(unique.shape[0]):
+#         s = unique[j]
+#         # select trials for current condition, identified by the split_by-array
+#         feedbacks = feedback[split_by == s]
+#         responses1 = response1[split_by == s]
+#         responses2 = response2[split_by == s]
+#         x1s = x1[split_by == s]
+#         x2s = x2[split_by == s]
+#         s1s = s1[split_by == s]
+#         s2s = s2[split_by == s]
+#
+#         # isleft1s = isleft1[split_by == s]
+#         # isleft2s = isleft2[split_by == s]
+#
+#         s_size = x1s.shape[0]
+#         qs_mf[:,0] = q
+#         qs_mf[:,1] = q
+#
+#         qs_mb[:,0] = q
+#         qs_mb[:,1] = q
+#
+#
+#         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
+#         gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+#         if alpha2 != 100.00:
+#             alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
+#         else:
+#             alfa2 = alfa
+#         if lambda_ != 100.00:
+#             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
+#         if w != 100.00:
+#             w = (2.718281828459**w) / (1 + 2.718281828459**w)
+#
+#
+#
+#
+#
+#
+#
+#         # don't calculate pdf for first trial but still update q
+#         # if feedbacks[0] > qs[responses[0]]:
+#             # alfa = (2.718281828459**pos_alfa) / (1 + 2.718281828459**pos_alfa)
+#         # else:
+#             # alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
+#
+#         # # qs[1] is upper bound, qs[0] is lower bound. feedbacks is reward
+#         # # received on current trial.
+#         # qs[responses[0]] = qs[responses[0]] + \
+#         #     alfa * (feedbacks[0] - qs[responses[0]])
+#
+#         # loop through all trials in current condition
+#         for i in range(0, s_size):
+#
+#             if counter[s1s[i]] > 0 and x1s[i]>0.15:
+#             # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
+#
+#
+#                 # 1st stage
+#                 planets = state_combinations[s1s[i]]
+#                 Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
+#                 # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+#
+#                 # if qval != 100: #
+#
+#
+#                 # dtq = qs[1] - qs[0]
+#                 dtq_mb = Qmb[0] - Qmb[1]
+#                 dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
+#                 if v == 100.00: # if v_reg
+#                     # Transform regression parameters so that >0
+#                     # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+#                     # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+#
+#                     if v_qval == 0:
+#                         if v_interaction == 100.00: # if don't use interaction term
+#                             # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
+#
+#                             v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
+#
+#                         else: # if use interaction term
+#                             v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
+#                     elif v_qval == 1: # just mb
+#                         v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
+#                     elif v_qval == 2:
+#                         v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
+#                 else: # if don't use v_reg:
+#                     if v_qval == 0: # use both qmb and qmf
+#                         qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+#                         dtq = qs[1] - qs[0]
+#                         v_ = dtq * v
+#                     elif v_qval == 1:
+#                         v_ = dtq_mb * v
+#                     elif v_qval==2:
+#                         v_ = dtq_mf * v
+#
+#                 if z0 != 100.00: # if use z_reg:
+#                     # Transform regression parameters so that >0
+#
+#                     if z_qval == 0:
+#                         if z_interaction == 100.00: # if don't use interaction term
+#                             z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
+#                         else:
+#                             z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
+#
+#                     elif z_qval == 1: # just mb
+#                         z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
+#                     elif z_qval == 2:
+#                         z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
+#                     sig = 1/(1+np.exp(-z_))
+#                 else: # if don't use z_reg:
+#                     sig = z
+#
+#                 rt = x1s[i]
+#
+#
+#                 # if isleft1s[i] == 0: # if chosen right
+#                 #     rt = -rt
+#                 #     v_ = -v_
+#
+#                 # p = full_pdf(rt, (dtq * v), sv, a, z,
+#                 #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
+#                 p = full_pdf(rt, v_, sv, a, sig,
+#                              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
+#                 # If one probability = 0, the log sum will be -Inf
+#                 p = p * (1 - p_outlier) + wp_outlier
+#                 if p == 0:
+#                     return -np.inf
+#                 sum_logp += log(p)
+#
+#
+#                 # # # 2nd stage
+#                 if two_stage == 1.00:
+#
+#                     v_2_ = v if v_2==100.00 else v_2
+#                     a_2_ = a if a_2 == 100.00 else a_2
+#
+#                     # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
+#                     if z_sigma == 100.00:  # if don't use 1st-stage dependent drift rate
+#                         # z_2_ = z if z_2 == 0.5 else z_2
+#                         z_2_ = z_2
+#                     else: # if use 1st-stage dependent drift rate
+#                         # z2 = logit(v1) + Normal(0, sigma_z2)
+#                         # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
+#
+#
+#
+#                         # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
+#                         # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
+#                         if z_sigma2 == 100.00: # don't use baseline
+#                             z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
+#                         else: # use baseline
+#                             z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
+#
+#
+#
+#
+#
+#
+#                     t_2_ = t if t_2 == 100.00 else t_2
+#
+#                     qs = qs_mb[s2s[i],:]
+#                     dtq = qs[1] - qs[0]
+#                     rt = x2s[i]
+#                     # if isleft2s[i] == 0:
+#                     #     dtq = -dtq
+#                     #     rt = -rt
+#                     p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
+#                     # If one probability = 0, the log sum will be -Inf
+#                     p = p * (1 - p_outlier) + wp_outlier
+#                     if p == 0:
+#                         return -np.inf
+#                     sum_logp += log(p)
+#
+#
+#             # update Q values, regardless of pdf
+#
+#
+#             # get learning rate for current trial. if pos_alpha is not in
+#             # include it will be same as alpha so can still use this
+#             # calculation:
+#             # if feedbacks[i] > qs[responses[i]]:
+#             #     alfa = (2.718281828459**pos_alfa) / (1 + 2.718281828459**pos_alfa)
+#             # else:
+#
+#
+#             # qs[1] is upper bound, qs[0] is lower bound. feedbacks is reward
+#             # received on current trial.
+#             # qs[responses[i]] = qs[responses[i]] + \
+#             #     alfa * (feedbacks[i] - qs[responses[i]])
+#
+#
+#             dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
+#             qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
+#
+#             dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
+#             qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
+#             if lambda_ != 100.00: # if using eligibility trace
+#                 qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+#
+#
+#             # memory decay for unexperienced options in this trial
+#
+#             for s_ in range(nstates):
+#                 for a_ in range(2):
+#                     if (s_ is not s2s[i]) or (a_ is not responses2[i]):
+#                         # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+#                         qs_mb[s_,a_] *= (1-gamma_)
+#
+#             for s_ in range(comb(nstates,2,exact=True)):
+#                 for a_ in range(2):
+#                     if (s_ is not s1s[i]) or (a_ is not responses1[i]):
+#                         qs_mf[s_,a_] *= (1-gamma_)
+#
+#             counter[s1s[i]] += 1
+#
+#
+#
+#     return sum_logp
+
 # JY added on 2022-01-03 for simultaneous regression on two-step tasks
-def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
+def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
+# def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       np.ndarray[double, ndim=1] x2, # 2nd-stage RT
                       # np.ndarray[long, ndim=1] isleft1, # whether left response 1st-stage,
                       # np.ndarray[long, ndim=1] isleft2, # whether left response 2nd-stage
@@ -420,364 +777,9 @@ def wiener_like_rlddm_2step_reg(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double t_2,
                       double v_2,
                       double alpha2,
-                      double w, double z_sigma, double z_sigma2,
-
-
-                      # double st,
-
-                      double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
-                      double p_outlier=0, double w_outlier=0,
-                      ):
-
-    # if pos_alpha==100.00:
-    #     pos_alfa = alpha
-    # else:
-    #     pos_alfa = pos_alpha
-
-    if a==100.00: # if fixed threshold
-        a = 1
-
-    # if a_2 == 100.00: # if shared threshold
-    #     a_2 = a
-    # this part is in later if statement in 2nd stage
-
-
-    # cdef double a = 1
-    cdef double sz = 0
-    cdef double st = 0
-    cdef double sv = 0
-
-
-    cdef Py_ssize_t size = x1.shape[0]
-    cdef Py_ssize_t i, j
-    cdef Py_ssize_t s_size
-    cdef int s
-    cdef double p
-    cdef double sum_logp = 0
-    cdef double wp_outlier = w_outlier * p_outlier
-    cdef double alfa
-    cdef double pos_alfa
-    cdef double alfa2
-
-    cdef double gamma_
-    cdef double lambda__
-
-    # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
-    cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-    cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
-
-
-
-
-    cdef double dtQ1
-    cdef double dtQ2
-
-    cdef double dtq_mb
-    cdef double dtq_mf
-
-    cdef long s_
-    cdef long a_
-    cdef double v_
-    cdef double z_
-    cdef double sig
-    cdef double v_2_
-    cdef double z_2_
-    cdef double a_2_
-    cdef double t_2_
-
-
-    cdef np.ndarray[double, ndim=1] x1s
-    cdef np.ndarray[double, ndim=1] x2s
-    cdef np.ndarray[double, ndim=1] feedbacks
-    cdef np.ndarray[long, ndim=1] responses1
-    cdef np.ndarray[long, ndim=1] responses2
-    cdef np.ndarray[long, ndim=1] unique = np.unique(split_by)
-
-    cdef np.ndarray[long, ndim=1] s1s
-    cdef np.ndarray[long, ndim=1] s2s
-    # cdef np.ndarray[long, ndim=1] isleft1s
-    # cdef np.ndarray[long, ndim=1] isleft2s
-
-    # Added by Jungsun Yoo on 2021-11-27 for two-step tasks
-    # parameters added for two-step
-
-
-    cdef np.ndarray[long, ndim=1] planets
-    cdef np.ndarray[double, ndim=1] counter = np.zeros(comb(nstates,2,exact=True))
-    cdef np.ndarray[double, ndim=1] Qmb
-    cdef double dtq
-    cdef double rt
-    cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
-    cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
-
-    if not p_outlier_in_range(p_outlier):
-        return -np.inf
-
-    if pos_alpha==100.00:
-        pos_alfa = alpha
-    else:
-        pos_alfa = pos_alpha
-
-    # if alpha2==100.00: # if either only 1st stage or don't share lr:
-
-
-    # unique represent # of conditions
-    for j in range(unique.shape[0]):
-        s = unique[j]
-        # select trials for current condition, identified by the split_by-array
-        feedbacks = feedback[split_by == s]
-        responses1 = response1[split_by == s]
-        responses2 = response2[split_by == s]
-        x1s = x1[split_by == s]
-        x2s = x2[split_by == s]
-        s1s = s1[split_by == s]
-        s2s = s2[split_by == s]
-
-        # isleft1s = isleft1[split_by == s]
-        # isleft2s = isleft2[split_by == s]
-
-        s_size = x1s.shape[0]
-        qs_mf[:,0] = q
-        qs_mf[:,1] = q
-
-        qs_mb[:,0] = q
-        qs_mb[:,1] = q
-
-
-        alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
-        gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
-        if alpha2 != 100.00:
-            alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
-        else:
-            alfa2 = alfa
-        if lambda_ != 100.00:
-            lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
-        if w != 100.00:
-            w = (2.718281828459**w) / (1 + 2.718281828459**w)
-
-
-
-
-
-
-
-        # don't calculate pdf for first trial but still update q
-        # if feedbacks[0] > qs[responses[0]]:
-            # alfa = (2.718281828459**pos_alfa) / (1 + 2.718281828459**pos_alfa)
-        # else:
-            # alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
-
-        # # qs[1] is upper bound, qs[0] is lower bound. feedbacks is reward
-        # # received on current trial.
-        # qs[responses[0]] = qs[responses[0]] + \
-        #     alfa * (feedbacks[0] - qs[responses[0]])
-
-        # loop through all trials in current condition
-        for i in range(0, s_size):
-
-            if counter[s1s[i]] > 0 and x1s[i]>0.15:
-            # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
-
-
-                # 1st stage
-                planets = state_combinations[s1s[i]]
-                Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
-                # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-
-                # if qval != 100: #
-
-
-                # dtq = qs[1] - qs[0]
-                dtq_mb = Qmb[0] - Qmb[1]
-                dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
-                if v == 100.00: # if v_reg
-                    # Transform regression parameters so that >0
-                    # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
-                    # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
-
-                    if v_qval == 0:
-                        if v_interaction == 100.00: # if don't use interaction term
-                            # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
-
-                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) # use both Qvals
-
-                        else: # if use interaction term
-                            v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1)) + (dtq_mf * (2.718281828459 ** v2)) + ((2.718281828459 ** v_interaction) * dtq_mb * dtq_mf)
-                    elif v_qval == 1: # just mb
-                        v_ = (2.718281828459 ** v0) + (dtq_mb * (2.718281828459 ** v1))
-                    elif v_qval == 2:
-                        v_ = (2.718281828459 ** v0) + (dtq_mf * (2.718281828459 ** v2)) # just qmf
-                else: # if don't use v_reg:
-                    if v_qval == 0: # use both qmb and qmf
-                        qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-                        dtq = qs[1] - qs[0]
-                        v_ = dtq * v
-                    elif v_qval == 1:
-                        v_ = dtq_mb * v
-                    elif v_qval==2:
-                        v_ = dtq_mf * v
-
-                if z0 != 100.00: # if use z_reg:
-                    # Transform regression parameters so that >0
-
-                    if z_qval == 0:
-                        if z_interaction == 100.00: # if don't use interaction term
-                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) # use both Qvals
-                        else:
-                            z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1)) + (dtq_mf * (2.718281828459 ** z2)) + ((2.718281828459 ** z_interaction) * dtq_mb * dtq_mf)
-
-                    elif z_qval == 1: # just mb
-                        z_ = (2.718281828459 ** z0) + (dtq_mb * (2.718281828459 ** z1))
-                    elif z_qval == 2:
-                        z_ = (2.718281828459 ** z0) + (dtq_mf * (2.718281828459 ** z2)) # just qmf
-                    sig = 1/(1+np.exp(-z_))
-                else: # if don't use z_reg:
-                    sig = z
-
-                rt = x1s[i]
-
-
-                # if isleft1s[i] == 0: # if chosen right
-                #     rt = -rt
-                #     v_ = -v_
-
-                # p = full_pdf(rt, (dtq * v), sv, a, z,
-                #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
-                p = full_pdf(rt, v_, sv, a, sig,
-                             sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
-                # If one probability = 0, the log sum will be -Inf
-                p = p * (1 - p_outlier) + wp_outlier
-                if p == 0:
-                    return -np.inf
-                sum_logp += log(p)
-
-
-                # # # 2nd stage
-                if two_stage == 1.00:
-
-                    v_2_ = v if v_2==100.00 else v_2
-                    a_2_ = a if a_2 == 100.00 else a_2
-
-                    # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
-                    if z_sigma == 100.00:  # if don't use 1st-stage dependent drift rate
-                        # z_2_ = z if z_2 == 0.5 else z_2
-                        z_2_ = z_2
-                    else: # if use 1st-stage dependent drift rate
-                        # z2 = logit(v1) + Normal(0, sigma_z2)
-                        # z_2_ = 1/(1+np.exp(-v_)) + np.random.normal(0,z_sigma,1)
-
-
-
-                        # z_sigma = np.maximum(z_sigma,0) # make sure it's pos+itive
-                        # z_2_ = np.clip(1 / (1 + np.exp(-v_)) + np.random.normal(0, z_sigma, 1), 0, 1)
-                        if z_sigma2 == 100.00: # don't use baseline
-                            z_2_ = np.clip(1 / (1 + np.exp(-v_*(2.718281828459 ** z_sigma))) , 0, 1)
-                        else: # use baseline
-                            z_2_ = np.clip(1 / (1 + np.exp(-(v_ * (2.718281828459 ** z_sigma) + (2.718281828459 ** z_sigma2)))), 0, 1)
-
-
-
-
-
-
-                    t_2_ = t if t_2 == 100.00 else t_2
-
-                    qs = qs_mb[s2s[i],:]
-                    dtq = qs[1] - qs[0]
-                    rt = x2s[i]
-                    # if isleft2s[i] == 0:
-                    #     dtq = -dtq
-                    #     rt = -rt
-                    p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
-                    # If one probability = 0, the log sum will be -Inf
-                    p = p * (1 - p_outlier) + wp_outlier
-                    if p == 0:
-                        return -np.inf
-                    sum_logp += log(p)
-
-
-            # update Q values, regardless of pdf
-
-
-            # get learning rate for current trial. if pos_alpha is not in
-            # include it will be same as alpha so can still use this
-            # calculation:
-            # if feedbacks[i] > qs[responses[i]]:
-            #     alfa = (2.718281828459**pos_alfa) / (1 + 2.718281828459**pos_alfa)
-            # else:
-
-
-            # qs[1] is upper bound, qs[0] is lower bound. feedbacks is reward
-            # received on current trial.
-            # qs[responses[i]] = qs[responses[i]] + \
-            #     alfa * (feedbacks[i] - qs[responses[i]])
-
-
-            dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
-            qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
-
-            dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
-            qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
-            if lambda_ != 100.00: # if using eligibility trace
-                qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
-
-
-            # memory decay for unexperienced options in this trial
-
-            for s_ in range(nstates):
-                for a_ in range(2):
-                    if (s_ is not s2s[i]) or (a_ is not responses2[i]):
-                        # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                        qs_mb[s_,a_] *= (1-gamma_)
-
-            for s_ in range(comb(nstates,2,exact=True)):
-                for a_ in range(2):
-                    if (s_ is not s1s[i]) or (a_ is not responses1[i]):
-                        qs_mf[s_,a_] *= (1-gamma_)
-
-            counter[s1s[i]] += 1
-
-
-
-    return sum_logp
-
-# JY added on 2022-01-03 for simultaneous regression on two-step tasks
-def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 1st-stage RT
-                      np.ndarray[double, ndim=1] x2, # 2nd-stage RT
-                      # np.ndarray[long, ndim=1] isleft1, # whether left response 1st-stage,
-                      # np.ndarray[long, ndim=1] isleft2, # whether left response 2nd-stage
-                      np.ndarray[long,ndim=1] s1, # 1st-stage state
-                      np.ndarray[long,ndim=1] s2, # 2nd-stage state
-                      np.ndarray[long, ndim=1] response1,
-                      np.ndarray[long, ndim=1] response2,
-                      np.ndarray[double, ndim=1] feedback,
-                      np.ndarray[long, ndim=1] split_by,
-                      double q, double alpha, double pos_alpha,
-
-                      # double w,
-                      double gamma,
-                      double lambda_,
-
-                      double v0, double v1, double v2,
-                      double v, # don't use second stage
-                      # double sv,
-                      double a,
-                      double z0, double z1, double z2,
-                      double z,
-                      # double sz,
-                      double t,
-                      int nstates,
-                      double v_qval, double z_qval,
-                      double v_interaction, double z_interaction,
-                      double two_stage,
-
-                      double a_2,
-                      double z_2,
-                      double t_2,
-                      double v_2,
-                      double alpha2,
-                      double w, double z_sigma, double z_sigma2,
-                      double window_start, double window_size,
+                      double w, double w2, double z_scaler,
+                      double z_sigma, double z_sigma2,
+                      double window_start=-1, double window_size=999,
 
 
                       # double st,
@@ -990,7 +992,13 @@ def wiener_like_rlddm_2step_reg_sliding_window(np.ndarray[double, ndim=1] x1, # 
                             z_ = z0 + (dtq_mf * z2) # just qmf
                         sig = 1/(1+np.exp(-z_))
                     else: # if don't use z_reg:
-                        sig = z
+                        qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
+                        dtq = qs[1] - qs[0]
+                        z_ = dtq * z_scaler
+                        sig = 1 / (1 + np.exp(-z_))
+                        # z_ = dtq *
+                        # sig = z
+
 
                     rt = x1s[i]
 

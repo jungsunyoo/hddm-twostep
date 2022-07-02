@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step #wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
@@ -123,6 +123,29 @@ class HDDMrl(HDDM):
                     )
                 )
 
+            if (not self.z_reg) and (not self.z_sep_q):
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "w2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "z_scaler",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.dual:
                 knodes.update(
                     self._create_family_normal_non_centered(
@@ -332,6 +355,24 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if (not self.z_reg) and (not self.z_sep_q):
+                knodes.update(
+                    self._create_family_normal(
+                        "w2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+
+                )
+                knodes.update(
+                    self._create_family_normal_normal_hnormal(
+                        "z_scaler", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
+                    )
+                )
 
 
             if self.dual:
@@ -485,7 +526,12 @@ class HDDMrl(HDDM):
             wfpt_parents["w"] = knodes["w_bottom"]
         else:
             wfpt_parents["w"] = 100.00
-
+        if (not self.z_reg) and (not self.z_sep_q):
+            wfpt_parents["w2"] = knodes["w2_bottom"]
+            wfpt_parents["z_scaler"] = knodes["z_scaler_bottom"]
+        else:
+            wfpt_parents["w2"] = 100.00
+            wfpt_parents["z_scaler"] = 100.00
         wfpt_parents["gamma"] = knodes["gamma_bottom"]
         wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.00
 
@@ -612,7 +658,7 @@ class HDDMrl(HDDM):
 
         if self.window_size is False:
             wfpt_parents['window_start'] = -1.00
-            wfpt_parents['window_size'] = -1.00
+            wfpt_parents['window_size'] = 999.00
         else:
             wfpt_parents['window_start'] = self.window_start
             wfpt_parents['window_size'] = self.window_size
@@ -727,7 +773,94 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
 # def wienerRL_like_2step_reg(x, v, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0): # regression ver1: without bounds
 # def wienerRL_like_2step_reg(x, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, z0, z1, z2,t, p_outlier=0): # regression ver2: bounded, a fixed to 1
-def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, p_outlier=0): # regression ver2: bounded, a fixed to 1
+# def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, p_outlier=0): # regression ver2: bounded, a fixed to 1
+#
+#     wiener_params = {
+#         "err": 1e-4,
+#         "n_st": 2,
+#         "n_sz": 2,
+#         "use_adaptive": 1,
+#         "simps_err": 1e-3,
+#         "w_outlier": 0.1,
+#     }
+#     wp = wiener_params
+#     response1 = x["response1"].values.astype(int)
+#     response2 = x["response2"].values.astype(int)
+#     state1 = x["state1"].values.astype(int)
+#     state2 = x["state2"].values.astype(int)
+#
+#     # isleft1 = x["isleft1"].values.astype(int)
+#     # isleft2 = x["isleft2"].values.astype(int)
+#
+#
+#     q = x["q_init"].iloc[0]
+#     feedback = x["feedback"].values.astype(float)
+#     split_by = x["split_by"].values.astype(int)
+#
+#
+#     # JY added for two-step tasks on 2021-12-05
+#     # nstates = x["nstates"].values.astype(int)
+#     nstates = max(x["state2"].values.astype(int)) + 1
+#
+#     # # JY added for which q-value to use (if sep, qmb or qmf)
+#     # qval = 0 # default: simultaneous
+#
+#     # if
+#
+#
+#     return wiener_like_rlddm_2step_reg(
+#         x["rt1"].values,
+#         x["rt2"].values,
+#
+#         # isleft1,
+#         # isleft2,
+#
+#         state1,
+#         state2,
+#         response1,
+#         response2,
+#         feedback,
+#         split_by,
+#         q,
+#         alpha,
+#         pos_alpha,
+#         # w, # added for two-step task
+#         gamma, # added for two-step task
+#         lambda_, # added for two-step task
+#         v0, # intercept for first stage rt regression
+#         v1, # slope for mb
+#         v2, # slobe for mf
+#         v, # don't use second stage for now
+#         # sv,
+#         a,
+#         z0, # bias: added for intercept regression 1st stage
+#         z1, # bias: added for slope regression mb 1st stage
+#         z2, # bias: added for slope regression mf 1st stage
+#         z,
+#         # sz,
+#         t,
+#         nstates,
+#         v_qval,
+#         z_qval,
+#         v_interaction,
+#         z_interaction,
+#         two_stage,
+#
+#         a_2,
+#         z_2,
+#         t_2,
+#         v_2,
+#         alpha2,
+#         w,
+#         z_sigma,
+#         z_sigma2,
+#         # st,
+#         p_outlier=p_outlier,
+#         **wp
+#     )
+
+def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
+                                           v_qval,z_qval,two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start=-1,window_size=999,p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -761,94 +894,8 @@ def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interact
 
     # if
 
-
-    return wiener_like_rlddm_2step_reg(
-        x["rt1"].values,
-        x["rt2"].values,
-
-        # isleft1,
-        # isleft2,
-
-        state1,
-        state2,
-        response1,
-        response2,
-        feedback,
-        split_by,
-        q,
-        alpha,
-        pos_alpha, 
-        # w, # added for two-step task
-        gamma, # added for two-step task 
-        lambda_, # added for two-step task 
-        v0, # intercept for first stage rt regression
-        v1, # slope for mb
-        v2, # slobe for mf
-        v, # don't use second stage for now
-        # sv,
-        a,
-        z0, # bias: added for intercept regression 1st stage
-        z1, # bias: added for slope regression mb 1st stage
-        z2, # bias: added for slope regression mf 1st stage
-        z,
-        # sz,
-        t,
-        nstates,
-        v_qval,
-        z_qval,
-        v_interaction, 
-        z_interaction, 
-        two_stage,
-
-        a_2,
-        z_2,
-        t_2,
-        v_2,
-        alpha2,
-        w,
-        z_sigma,
-        z_sigma2,
-        # st,
-        p_outlier=p_outlier,
-        **wp
-    )
-
-def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2,window_start,window_size,p_outlier=0): # regression ver2: bounded, a fixed to 1
-
-    wiener_params = {
-        "err": 1e-4,
-        "n_st": 2,
-        "n_sz": 2,
-        "use_adaptive": 1,
-        "simps_err": 1e-3,
-        "w_outlier": 0.1,
-    }
-    wp = wiener_params
-    response1 = x["response1"].values.astype(int)
-    response2 = x["response2"].values.astype(int)
-    state1 = x["state1"].values.astype(int)
-    state2 = x["state2"].values.astype(int)
-
-    # isleft1 = x["isleft1"].values.astype(int)
-    # isleft2 = x["isleft2"].values.astype(int)
-
-
-    q = x["q_init"].iloc[0]
-    feedback = x["feedback"].values.astype(float)
-    split_by = x["split_by"].values.astype(int)
-
-
-    # JY added for two-step tasks on 2021-12-05
-    # nstates = x["nstates"].values.astype(int)
-    nstates = max(x["state2"].values.astype(int)) + 1
-
-    # # JY added for which q-value to use (if sep, qmb or qmf)
-    # qval = 0 # default: simultaneous
-
-    # if
-
-
-    return wiener_like_rlddm_2step_reg_sliding_window(
+    return wiener_like_rlddm_2step(
+    # return wiener_like_rlddm_2step_reg_sliding_window(
         x["rt1"].values,
         x["rt2"].values,
 
@@ -892,6 +939,8 @@ def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1,
         v_2,
         alpha2,
         w,
+        w2,
+        z_scaler,
         z_sigma,
         z_sigma2,
         # st,
@@ -904,5 +953,6 @@ def wienerRL_like_2step_reg_sliding_window(x, v0, v1, v2, v_interaction, z0, z1,
 # WienerRL = stochastic_from_dist("wienerRL", wienerRL_like)
 # WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
 # WienerRL = stochastic_from_dist("wienerRL_2step_reg", wienerRL_like_2step_reg)
-WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
+# WienerRL = stochastic_from_dist("wienerRL_2step_reg_sliding_window", wienerRL_like_2step_reg_sliding_window)
 #
+WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
