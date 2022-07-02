@@ -860,7 +860,7 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
 #     )
 
 def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
-                                           v_qval,z_qval,two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start=-1,window_size=999,p_outlier=0): # regression ver2: bounded, a fixed to 1
+                                           v_qval,z_qval,two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size,p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,

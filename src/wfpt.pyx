@@ -779,7 +779,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double alpha2,
                       double w, double w2, double z_scaler,
                       double z_sigma, double z_sigma2,
-                      double window_start=-1, double window_size=999,
+                      double window_start, double window_size,
 
 
                       # double st,
@@ -913,7 +913,8 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
         if w != 100.00:
             w = (2.718281828459**w) / (1 + 2.718281828459**w)
-
+        if w2 != 100.00:
+            w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
 
 
 
