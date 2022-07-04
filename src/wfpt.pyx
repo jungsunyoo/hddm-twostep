@@ -877,6 +877,12 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     else:
         pos_alfa = pos_alpha
 
+
+
+    if v0 == 100.00:
+        v0 = 0.00
+    if z0 == 100.00:
+        z0 = 0.00
     # if alpha2==100.00: # if either only 1st stage or don't share lr:
 
 
