@@ -55,7 +55,7 @@ class HDDMrl(HDDM):
         self.z_sep_q = kwargs.pop("z_sep_q", False) # In 1st stage, whether to use Qmf/Qmb separately for z (starting point) regression    
         self.z_qmb = kwargs.pop("z_qmb", False) # Given sep_q, True = qmb, False = Qmf
         self.z_interaction = kwargs.pop("z_interaction", False) # whether to include interaction term for z
-        self.z0 = kwargs.pop("z0") # whether to use z0
+        self.z0 = kwargs.pop("z0", False) # whether to use z0
 
 
         self.a_share = kwargs.pop("a_share", False) # whether to share a btw 1st & 2nd stage (if a!=1)
