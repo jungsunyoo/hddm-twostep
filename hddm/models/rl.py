@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rl, wiener_like_rl_2step, wiener_like_rl_2step_sliding_window
+from wfpt import wiener_like_rl, wiener_like_rl_2step #, wiener_like_rl_2step_sliding_window
 from collections import OrderedDict
 
 
@@ -469,5 +469,6 @@ def RL_like_2step_sliding_window(x, v, v_2, alpha, alpha2, two_stage, pos_alpha,
         **wp
     )
 # RL = stochastic_from_dist("RL", RL_like)
-# RL_2step = stochastic_from_dist("RL_2step", RL_like_2step)
-RL_2step_sliding_window = stochastic_from_dist("RL_2step_sliding_window", RL_like_2step_sliding_window)
+RL_2step = stochastic_from_dist("RL_2step", RL_like_2step)
+# RL_2step_sliding_window = stochastic_from_dist("RL_2step_sliding_window", RL_like_2step_sliding_window)
+# 
