@@ -941,7 +941,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         # loop through all trials in current condition
         # print(window_size, window_start)
         for i in range(0, s_size):
-            if window_size>0 and (window_start <= i < window_start+window_size):# and (window_start <= i < window_start+window_size):
+            if window_start <= i < window_start + window_size:  # and (window_start <= i < window_start+window_size):
                 if counter[s1s[i]] > 0 and x1s[i]>0.15:
                 # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
 
@@ -1139,7 +1139,8 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double z_2,
                       double v_2,
                       double alpha2,
-                      double w,
+                      double w, double window_start, double window_size,
+
 
                       double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
                       double p_outlier=0, double w_outlier=0,
@@ -1250,51 +1251,26 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
         # loop through all trials in current condition
         for i in range(0, s_size):
+            if window_start <= i < window_start + window_size:  # and (window_start <= i < window_start+window_size):
+                if counter[s1s[i]] > 0 and x1s[i]>0.15:
 
-            if counter[s1s[i]] > 0 and x1s[i]>0.15:
-            # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
-                # 1st stage
-                planets = state_combinations[s1s[i]]
-                Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
+                    # proceed with pdf only if 1) the current 1st-stage state have been updated and 2) "plausible" RT (150 ms)
+                    # 1st stage
+                    planets = state_combinations[s1s[i]]
+                    Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
 
-                qs = w * Qmb + (1 - w) * qs_mf[s1s[i], :]  # Update for 1st trial
-                drift = (qs[1] - qs[0]) * v
+                    qs = w * Qmb + (1 - w) * qs_mf[s1s[i], :]  # Update for 1st trial
+                    drift = (qs[1] - qs[0]) * v
 
-                if drift == 0:
-                    p = 0.5
-                else:
-                    if responses1[i] == 1:
-                        p = (2.718281828459**(-2 * z * drift) - 1) / \
-                            (2.718281828459**(-2 * drift) - 1)
-                    else:
-                        p = 1 - (2.718281828459**(-2 * z * drift) - 1) / \
-                            (2.718281828459**(-2 * drift) - 1)
-
-                # If one probability = 0, the log sum will be -Inf
-                p = p * (1 - p_outlier) + wp_outlier
-                if p == 0:
-                    return -np.inf
-                sum_logp += log(p)
-
-                # # # # 2nd stage
-                if two_stage == 1.00:
-
-                    # v_2_ =  v if v_2 = 100.00 else v_2
-                    if v_2 == 100.00:
-                        v_2 = v
-
-
-                    qs = qs_mb[s2s[i],:]
-                    drift = (qs[1] - qs[0]) * v_2
                     if drift == 0:
                         p = 0.5
                     else:
-                        if responses2[i] == 1:
-                            p = (2.718281828459 ** (-2 * z_2 * drift) - 1) / \
-                                (2.718281828459 ** (-2 * drift) - 1)
+                        if responses1[i] == 1:
+                            p = (2.718281828459**(-2 * z * drift) - 1) / \
+                                (2.718281828459**(-2 * drift) - 1)
                         else:
-                            p = 1 - (2.718281828459 ** (-2 * z_2 * drift) - 1) / \
-                                (2.718281828459 ** (-2 * drift) - 1)
+                            p = 1 - (2.718281828459**(-2 * z * drift) - 1) / \
+                                (2.718281828459**(-2 * drift) - 1)
 
                     # If one probability = 0, the log sum will be -Inf
                     p = p * (1 - p_outlier) + wp_outlier
@@ -1302,30 +1278,56 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         return -np.inf
                     sum_logp += log(p)
 
-            # update Q values, regardless of pdf
-            dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
-            qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
+                    # # # # 2nd stage
+                    if two_stage == 1.00:
 
-            dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
-            qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
-            if lambda_ != 100.00: # if using eligibility trace
-                qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+                        # v_2_ =  v if v_2 = 100.00 else v_2
+                        if v_2 == 100.00:
+                            v_2 = v
 
 
-            # memory decay for unexperienced options in this trial
+                        qs = qs_mb[s2s[i],:]
+                        drift = (qs[1] - qs[0]) * v_2
+                        if drift == 0:
+                            p = 0.5
+                        else:
+                            if responses2[i] == 1:
+                                p = (2.718281828459 ** (-2 * z_2 * drift) - 1) / \
+                                    (2.718281828459 ** (-2 * drift) - 1)
+                            else:
+                                p = 1 - (2.718281828459 ** (-2 * z_2 * drift) - 1) / \
+                                    (2.718281828459 ** (-2 * drift) - 1)
 
-            for s_ in range(nstates):
-                for a_ in range(2):
-                    if (s_ is not s2s[i]) or (a_ is not responses2[i]):
-                        # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                        qs_mb[s_,a_] *= (1-gamma_)
+                        # If one probability = 0, the log sum will be -Inf
+                        p = p * (1 - p_outlier) + wp_outlier
+                        if p == 0:
+                            return -np.inf
+                        sum_logp += log(p)
 
-            for s_ in range(comb(nstates,2,exact=True)):
-                for a_ in range(2):
-                    if (s_ is not s1s[i]) or (a_ is not responses1[i]):
-                        qs_mf[s_,a_] *= (1-gamma_)
+                # update Q values, regardless of pdf
+                dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
+                qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
 
-            counter[s1s[i]] += 1
+                dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
+                qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
+                if lambda_ != 100.00: # if using eligibility trace
+                    qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+
+
+                # memory decay for unexperienced options in this trial
+
+                for s_ in range(nstates):
+                    for a_ in range(2):
+                        if (s_ is not s2s[i]) or (a_ is not responses2[i]):
+                            # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+                            qs_mb[s_,a_] *= (1-gamma_)
+
+                for s_ in range(comb(nstates,2,exact=True)):
+                    for a_ in range(2):
+                        if (s_ is not s1s[i]) or (a_ is not responses1[i]):
+                            qs_mf[s_,a_] *= (1-gamma_)
+
+                counter[s1s[i]] += 1
 
 
 
