@@ -1016,7 +1016,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # p = full_pdf(rt, (dtq * v), sv, a, z,
                     #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
-                    p = full_pdf(rt, v_, sv, a, sig,
+                    p = full_pdf(rt, v_, sv, a, sig * a,
                                  sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
                     # If one probability = 0, the log sum will be -Inf
                     p = p * (1 - p_outlier) + wp_outlier
