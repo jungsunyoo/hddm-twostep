@@ -670,7 +670,294 @@ def gen_rand_rlddm_data(
 # def wienerRL_like_2step_reg(x, v0, v1, v2, z0, z1, z2,lambda_, 
 # alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, qval,
 # two_stage, w, p_outlier=0): # regression ver2: bounded, a fixed to 1
-# 
+#
+
+def simulation(
+        # x_train,  # this is the dataframe of data of the given participant
+        x,
+        # fold,
+        # size=1,
+        # p_upper=1,
+        # p_lower=0,
+        # # z=0.5,
+        # q_init=0.5,
+        # # pos_alpha=float("nan"),
+        # # subjs=1,
+        # split_by=0,
+        # mu_upper=1,
+        # mu_lower=0,
+        # sd_upper=0.1,
+        # sd_lower=0.1,
+        # binary_outcome=True,
+        # uncertainty=False,
+        **kwargs
+):
+    # Receiving behavioral data
+    total_x_len = len(x)  # total length of data
+
+    # nstates = max(x_train["state2"].values.astype(int)) + 1
+
+    subjs = len(np.unique(x["subj_idx"]))
+    q = x["q_init"].iloc[0]
+
+    rt1 = x["rt1"].values
+    rt2 = x["rt2"].values
+    responses1 = x["response1"].values.astype(int)
+    responses2 = x["response2"].values.astype(int)
+    s1s = x["state1"].values.astype(int)
+    s2s = x["state2"].values.astype(int)
+
+
+    q = x["q_init"].iloc[0]
+    feedback = x["feedback"].values.astype(float)
+    split_by = x["split_by"].values.astype(int)
+
+    # JY added for two-step tasks on 2021-12-05
+    nstates = max(x["state2"].values.astype(int)) + 1
+
+    subjs = len(np.unique(x["subj_idx"]))
+
+    # Receiving all keyword arguments
+    a = kwargs.pop("a", 1) # return 1 as default (if not otherwise specified)
+    a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
+    t = kwargs.pop("t", False)
+    t_2 = kwargs.pop("t_2", False)
+    v0 = kwargs.pop("v0", False)
+    v1 = kwargs.pop("v1", False)
+    v2 = kwargs.pop("v2", False)
+    v_interaction = kwargs.pop("v_interaction", False)
+    v_2 = kwargs.pop("v_2", False)
+    z = kwargs.pop("z", 0.5) # return 0.5 as default (if not otherwise specified)
+    z0 = kwargs.pop("z0", False)
+    z1 = kwargs.pop("z1", False)
+    z2 = kwargs.pop("z2", False)
+    z_interaction = kwargs.pop("z_interaction", False)
+    z_2 = kwargs.pop("z_2", 0.5)
+    lambda_ = kwargs.pop("lambda_", False)  # float("nan")
+    gamma = kwargs.pop("gamma", False)
+    w = kwargs.pop("w", False)
+    w2 = kwargs.pop("w2", False)
+    scaler = kwargs.pop("scaler", False)
+    scaler2 = kwargs.pop("scaler_2", False)
+    z_scaler = kwargs.pop("z_scaler", False)
+    pos_alpha = kwargs.pop("pos_alpha", False)
+    alpha = kwargs.pop("alpha", False)
+    alpha2 = kwargs.pop("alpha2", False)
+
+    all_data_response = []
+    all_data_rt = []
+    all_data_response1 = []
+    all_data_rt1 = []
+    all_data_response2 = []
+    all_data_rt2 = []
+    tg = t
+    ag = a
+    tg2 = t_2
+    ag2 = a_2
+
+    alphag = alpha
+    alphag2 = alpha2
+
+    pos_alphag = pos_alpha
+    scalerg = scaler
+    scalerg2 = scaler2
+    z_scalerg = z_scaler
+
+    Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
+
+    for s in range(0, subjs):
+        # if
+        t = (
+            np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+            if subjs > 1
+            else tg
+        )
+
+        a = (
+            np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+            if subjs > 1
+            else ag
+        )
+
+        alpha = (
+            np.minimum(
+                np.minimum(
+                    np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
+                    alphag + alphag,
+                ),
+                1,
+            )
+            if subjs > 1
+            else alphag
+        )
+
+        scaler = (
+            np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
+        )
+        z_scaler = (
+            np.random.normal(loc=z_scalerg, scale=0.25, size=1) if subjs > 1 else z_scalerg
+        )
+
+        if np.isnan(pos_alpha):
+            pos_alfa = alpha
+        else:
+            pos_alfa = (
+                np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
+                if subjs > 1
+                else pos_alphag
+            )
+        # n = size
+        n = len(x)
+        # if two_stage:
+        if t_2:
+            t_2 = (
+                np.maximum(0.05, np.random.normal(loc=tg2, scale=0.05, size=1))
+                if subjs > 1
+                else tg2
+            )
+        if a_2:
+            a_2 = (
+                np.maximum(0.05, np.random.normal(loc=ag2, scale=0.15, size=1))
+                if subjs > 1
+                else ag2
+            )
+        if alpha2:
+            alpha2 = (
+                np.minimum(
+                    np.minimum(
+                        np.maximum(0.001, np.random.normal(loc=alphag2, scale=0.05, size=1)),
+                        alphag + alphag,
+                    ),
+                    1,
+                )
+                if subjs > 1
+                else alphag2
+            )
+        if scaler2:
+            scaler2 = (
+                np.random.normal(loc=scalerg2, scale=0.25, size=1) if subjs > 1 else scalerg2
+            )
+
+
+        qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
+        qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
+
+        if alpha:
+            alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+        if gamma:
+            gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
+        if alpha2:
+            alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
+        else:
+            alfa2 = alfa
+        if lambda_:
+            lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
+        if w:
+            w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
+        if w2:
+            w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
+
+        state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
+
+        for j in range(total_x_len):  # loop over total data, including train
+
+            # FIRST STAGE
+            planets = state_combinations[s1s[j]]
+
+            # dtq = qs[1] - qs[0]
+            Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+
+            dtq_mb = Qmb[1] - Qmb[0]
+            dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
+
+            # if v0:  # if use v regression
+            #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+            #
+            # else:  # if don't use v regression
+            #     v_ = scaler
+            if w: # use w scaling for drift rate
+                qs = w * Qmb + (1 - w) * qs_mf[s1s[j], :]  # Update for 1st trial
+                dtq = qs[1] - qs[0]
+                v_ = dtq * scaler
+            if w2: # use w scaling for starting point
+                qs = w2 * Qmb + (1 - w2) * qs_mf[s1s[j], :]  # Update for 1st trial
+                dtq = qs[1] - qs[0]
+                z_ = dtq * z_scaler
+                sig = 1 / (1 + np.exp(-z_))
+
+            # if z0:
+            #     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+            #     sig = 1 / (1 + np.exp(-z_))
+            # else:
+            #     sig = z
+
+                # rt = x1s[i]
+
+            # if isleft1s[i] == 0: # if chosen right
+            #     rt = -rt
+            #     v_ = -v_
+            # x = simulator_cv([v_, a, sig, t])
+
+            data1, params1 = hddm.generate.gen_rand_data(
+                {"a": a, "t": t, "v": v_, "z": sig},
+                # subjs=1, size=1
+                size=1000, subjs=1  # make 1,000 simulations?
+            )
+            # SECOND STAGE
+            if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
+                qs = qs_mb[s2s[j], :]
+                dtq = qs[1] - qs[0]
+                v_ = dtq * v_2
+                # if isleft2_test[j] == 0:  # if chosen right
+                #     v_ = -v_
+                sig = z_2
+                data2, params2 = hddm.generate.gen_rand_data(
+                    {"a": a_2, "t": t_2, "v": v_, "z": sig},
+                    # subjs=1, size=1
+                    size=1000, subjs=1  # make 1,000 simulations?
+                )
+                all_data_rt2.append(data2.rt)
+                all_data_response2.append(data2.response)
+
+            # Update test fold
+            dtQ1 = qs_mb[s2s[j], responses2[j]] - qs_mf[
+                s1s[j], responses1[j]]  # delta stage 1
+            qs_mf[s1s[j], responses1[j]] = qs_mf[s1s[j], responses1[
+                j]] + alfa * dtQ1  # delta update for qmf
+
+            dtQ2 = feedback[j] - qs_mb[s2s[j], responses2[j]]  # delta stage 2
+            qs_mb[s2s[j], responses2[j]] = qs_mb[s2s[j], responses2[
+                j]] + alfa2 * dtQ2  # delta update for qmb
+            if lambda_:  # if using eligibility trace
+                qs_mf[s1s[j], responses1[j]] = qs_mf[s1s[j], responses1[
+                    j]] + lambda__ * dtQ2  # eligibility trace
+
+            # memory decay for unexperienced options in this trial
+            if gamma:
+                for s_ in range(nstates):
+                    for a_ in range(2):
+                        if (s_ is not s2s[j]) or (a_ is not responses2[j]):
+                            # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+                            qs_mb[s_, a_] *= (1 - gamma_)
+
+                for s_ in range(comb(nstates, 2, exact=True)):
+                    for a_ in range(2):
+                        if (s_ is not s1s[j]) or (a_ is not responses1[j]):
+                            qs_mf[s_, a_] *= (1 - gamma_)
+            all_data_rt1.append(data1.rt)
+            all_data_response1.append(data1.response)
+
+        all_data_rt.append(all_data_rt1)
+        all_data_response.append(all_data_response1)
+        if t_2:  # if 2nd stage is also estimated:
+            all_data_rt.append(all_data_rt2)
+            all_data_response.append(all_data_response2)
+
+
+    # return all_data
+    return all_data_response, all_data_rt
+
+
 # For now, only one participant only
 def cross_validation(
         x_train,  # this is the dataframe of data of the given participant
@@ -756,7 +1043,9 @@ def cross_validation(
     lambda_ = kwargs.pop("lambda_", False)  # float("nan")
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
+    w2 = kwargs.pop("w2", False)
     scaler = kwargs.pop("scaler", False)
+    z_scaler = kwargs.pop("z_scaler", False)
     scaler2 = kwargs.pop("scaler_2", False)
     pos_alpha = kwargs.pop("pos_alpha", False)
     alpha = kwargs.pop("alpha", False)
@@ -770,16 +1059,17 @@ def cross_validation(
     all_data_rt2 = []
     tg = t
     ag = a
-    t_2g = t_2
-    a_2g = a_2
+    tg2 = t_2
+    ag2 = a_2
 
     alphag = alpha
-    alpha2g = alpha2
+    alphag2 = alpha2
 
     pos_alphag = pos_alpha
     scalerg = scaler
+    z_scalerg = z_scaler
 
-    scaler2g = scaler2
+    scalerg2 = scaler2
 
     Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
 
@@ -826,31 +1116,35 @@ def cross_validation(
         # if two_stage: 
         if t_2:
             t_2 = (
-                np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+                np.maximum(0.05, np.random.normal(loc=tg2, scale=0.05, size=1))
                 if subjs > 1
-                else t_2g
+                else tg2
             )
         if a_2:
             a_2 = (
-                np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+                np.maximum(0.05, np.random.normal(loc=ag2, scale=0.15, size=1))
                 if subjs > 1
-                else a_2g
+                else ag2
             )
         if alpha2:
             alpha2 = (
                 np.minimum(
                     np.minimum(
-                        np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
-                        alphag + alphag,
+                        np.maximum(0.001, np.random.normal(loc=alphag2, scale=0.05, size=1)),
+                        alphag2 + alphag2,
                     ),
                     1,
                 )
                 if subjs > 1
-                else alpha2g
+                else alphag2
             )
         if scaler2:
             scaler2 = (
-                np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scaler2g
+                np.random.normal(loc=scalerg2, scale=0.25, size=1) if subjs > 1 else scalerg2
+            )
+        if z_scaler:
+            z_scaler = (
+                np.random.normal(loc=z_scalerg, scale=0.25, size=1) if subjs > 1 else z_scalerg
             )
 
         qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
@@ -868,7 +1162,8 @@ def cross_validation(
             lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
         if w:
             w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
-
+        if w2:
+            w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
         state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
 
         for counter in range(total_x_len):  # loop over total data, including train
@@ -915,14 +1210,14 @@ def cross_validation(
                 # dtq = qs[1] - qs[0]
                 Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
 
-                dtq_mb = Qmb[0] - Qmb[1]
-                dtq_mf = qs_mf[s1s_test[j], 0] - qs_mf[s1s_test[j], 1]
+                dtq_mb = Qmb[1] - Qmb[0]
+                dtq_mf = qs_mf[s1s_test[j], 1] - qs_mf[s1s_test[j], 0]
 
                 if v0:  # if use v regression
                     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
 
-                else:  # if don't use v regression                   
-                    v_ = scaler
+                # else:  # if don't use v regression
+                #     v_ = scaler
 
                 # if isleft1_test[j] == 0: # if chosen right
                 #     v_ = -v_
@@ -930,9 +1225,17 @@ def cross_validation(
                 if z0:
                     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
                     sig = 1 / (1 + np.exp(-z_))
-                else:
-                    sig = z
-
+                # else:
+                #     sig = z
+                if w:  # use w scaling for drift rate
+                    qs = w * Qmb + (1 - w) * qs_mf[s1s_test[j], :]  # Update for 1st trial
+                    dtq = qs[1] - qs[0]
+                    v_ = dtq * scaler
+                if w2:  # use w scaling for starting point
+                    qs = w2 * Qmb + (1 - w2) * qs_mf[s1s_test[j], :]  # Update for 1st trial
+                    dtq = qs[1] - qs[0]
+                    z_ = dtq * z_scaler
+                    sig = 1 / (1 + np.exp(-z_))
                     # rt = x1s[i]
 
                 # if isleft1s[i] == 0: # if chosen right
