@@ -780,6 +780,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double w, double w2, double z_scaler,
                       double z_sigma, double z_sigma2,
                       double window_start, double window_size,
+                      double beta_ndt,
 
 
                       # double st,
@@ -825,7 +826,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
     cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
 
-
+    cdef np.ndarray[double, ndim=2] ndt_counter = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
 
 
     cdef double dtQ1
@@ -838,6 +839,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef long a_
     cdef double v_
     cdef double z_
+    cdef double t_
     cdef double sig
     cdef double v_2_
     cdef double z_2_
@@ -922,7 +924,8 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if w2 != 100.00:
             w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
 
-
+        if beta_ndt != 100.00:
+            beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
 
 
 
@@ -1013,11 +1016,15 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # if isleft1s[i] == 0: # if chosen right
                     #     rt = -rt
                     #     v_ = -v_
+                    if beta_ndt != 100.00: # if regressing ndt as a function of experience
+                        t_ = beta_ndt * ndt_counter[s1s[i], 1]
+                    else:
+                        t_ = t
 
                     # p = full_pdf(rt, (dtq * v), sv, a, z,
                     #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
                     p = full_pdf(rt, v_, sv, a, sig * a,
-                                 sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
+                                 sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
                     # If one probability = 0, the log sum will be -Inf
                     p = p * (1 - p_outlier) + wp_outlier
                     if p == 0:
@@ -1086,6 +1093,10 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             # qs[responses[i]] = qs[responses[i]] + \
             #     alfa * (feedbacks[i] - qs[responses[i]])
 
+            # cdef np.ndarray[double, ndim=2] ndt_counter = np.ones(
+            #     (comb(nstates, 2, exact=True), 1))  # first-stage MF Q-values
+
+            ndt_counter[s1s[i],1] += 1
 
             dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
             qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf

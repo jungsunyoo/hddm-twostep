@@ -16,22 +16,6 @@ from collections import OrderedDict
 class HDDMrl(HDDM):
     """HDDM model that can be used for two-armed bandit tasks."""
 
-    # just 2-stage rlddm
-
-    # def __init__(self, *args, **kwargs):
-    #     self.non_centered = kwargs.pop("non_centered", False)
-    #     self.dual = kwargs.pop("dual", False)
-    #     self.alpha = kwargs.pop("alpha", True)
-    #     self.w = kwargs.pop("w", True) # added for two-step task
-    #     self.gamma = kwargs.pop("gamma", True) # added for two-step task
-    #     self.lambda_ = kwargs.pop("lambda_", True) # added for two-step task
-    #     self.wfpt_rl_class = WienerRL
-
-    #     super(HDDMrl, self).__init__(*args, **kwargs)
-    #
-
-    # 2-stage rlddm regression
-
     def __init__(self, *args, **kwargs):
         self.non_centered = kwargs.pop("non_centered", False)
         self.dual = kwargs.pop("dual", False)
@@ -75,7 +59,7 @@ class HDDMrl(HDDM):
         self.window_start = kwargs.pop("window_start", False)
         self.window_size = kwargs.pop("window_size", False)
         # print(self.window_start, self.window_size)
-
+        self.regress_ndt = kwargs.pop("regress_ndt", False)
 
 
         self.wfpt_rl_class = WienerRL
@@ -124,7 +108,18 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-
+            if self.regress_ndt:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "beta_ndt",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if (not self.z_reg) and (not self.z_sep_q):
                 knodes.update(
                     self._create_family_normal_non_centered(
@@ -370,7 +365,17 @@ class HDDMrl(HDDM):
                         std_upper=10,
                         std_value=0.1,
                     )
-
+                )
+                knodes.update(
+                    self._create_family_normal(
+                        "beta_ndt",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
                 )
                 knodes.update(
                     self._create_family_normal_normal_hnormal(
@@ -569,7 +574,7 @@ class HDDMrl(HDDM):
         # wfpt_parents["z1"] = knodes["z1_bottom"] if self.z_reg else 100.00
         # wfpt_parents["z2"] = knodes["z2_bottom"] if self.z_reg else 100.00
 
-
+        wfpt_parents['beta_ndt'] = knodes['beta_ndt_bottom'] if self.regress_ndt else 100.00
 
         if self.v_reg: # if using v_regression 
             wfpt_parents['v'] = 100.00
@@ -745,154 +750,9 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
         **wp
     )
 
-# def wienerRL_like_2step(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
-#
-#     wiener_params = {
-#         "err": 1e-4,
-#         "n_st": 2,
-#         "n_sz": 2,
-#         "use_adaptive": 1,
-#         "simps_err": 1e-3,
-#         "w_outlier": 0.1,
-#     }
-#     wp = wiener_params
-#     response1 = x["response1"].values.astype(int)
-#     response2 = x["response2"].values.astype(int)
-#     state1 = x["state1"].values.astype(int)
-#     state2 = x["state2"].values.astype(int)
-#
-#     # isleft1 = x["isleft1"].values.astype(int)
-#     # isleft2 = x["isleft2"].values.astype(int)
-#
-#
-#     q = x["q_init"].iloc[0]
-#     feedback = x["feedback"].values.astype(float)
-#     split_by = x["split_by"].values.astype(int)
-#
-#
-#     # YJS added for two-step tasks on 2021-12-05
-#     # nstates = x["nstates"].values.astype(int)
-#     nstates = max(x["state2"].values.astype(int)) + 1
-#
-#
-#     return wiener_like_rlddm_2step(
-#         x["rt1"].values,
-#         x["rt2"].values,
-#         state1,
-#         state2,
-#         response1,
-#         response2,
-#         feedback,
-#         split_by,
-#         q,
-#         alpha,
-#         pos_alpha,
-#         w, # added for two-step task
-#         gamma, # added for two-step task
-#         lambda_, # added for two-step task
-#
-#         v,
-#         sv,
-#         a,
-#         z,
-#         sz,
-#         t,
-#         nstates,
-#         st,
-#         p_outlier=p_outlier,
-#         **wp
-#     )
-# def wienerRL_like_2step_reg(x, v, alpha, pos_alpha, w, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0):
-# def wienerRL_like_2step_reg(x, v, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, sv, a, z, sz, t, st, p_outlier=0): # regression ver1: without bounds
-# def wienerRL_like_2step_reg(x, v0, v1, v2, alpha, pos_alpha, gamma, lambda_, z0, z1, z2,t, p_outlier=0): # regression ver2: bounded, a fixed to 1
-# def wienerRL_like_2step_reg(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2, v_qval,z_qval,two_stage, w, z_sigma,z_sigma2, p_outlier=0): # regression ver2: bounded, a fixed to 1
-#
-#     wiener_params = {
-#         "err": 1e-4,
-#         "n_st": 2,
-#         "n_sz": 2,
-#         "use_adaptive": 1,
-#         "simps_err": 1e-3,
-#         "w_outlier": 0.1,
-#     }
-#     wp = wiener_params
-#     response1 = x["response1"].values.astype(int)
-#     response2 = x["response2"].values.astype(int)
-#     state1 = x["state1"].values.astype(int)
-#     state2 = x["state2"].values.astype(int)
-#
-#     # isleft1 = x["isleft1"].values.astype(int)
-#     # isleft2 = x["isleft2"].values.astype(int)
-#
-#
-#     q = x["q_init"].iloc[0]
-#     feedback = x["feedback"].values.astype(float)
-#     split_by = x["split_by"].values.astype(int)
-#
-#
-#     # JY added for two-step tasks on 2021-12-05
-#     # nstates = x["nstates"].values.astype(int)
-#     nstates = max(x["state2"].values.astype(int)) + 1
-#
-#     # # JY added for which q-value to use (if sep, qmb or qmf)
-#     # qval = 0 # default: simultaneous
-#
-#     # if
-#
-#
-#     return wiener_like_rlddm_2step_reg(
-#         x["rt1"].values,
-#         x["rt2"].values,
-#
-#         # isleft1,
-#         # isleft2,
-#
-#         state1,
-#         state2,
-#         response1,
-#         response2,
-#         feedback,
-#         split_by,
-#         q,
-#         alpha,
-#         pos_alpha,
-#         # w, # added for two-step task
-#         gamma, # added for two-step task
-#         lambda_, # added for two-step task
-#         v0, # intercept for first stage rt regression
-#         v1, # slope for mb
-#         v2, # slobe for mf
-#         v, # don't use second stage for now
-#         # sv,
-#         a,
-#         z0, # bias: added for intercept regression 1st stage
-#         z1, # bias: added for slope regression mb 1st stage
-#         z2, # bias: added for slope regression mf 1st stage
-#         z,
-#         # sz,
-#         t,
-#         nstates,
-#         v_qval,
-#         z_qval,
-#         v_interaction,
-#         z_interaction,
-#         two_stage,
-#
-#         a_2,
-#         z_2,
-#         t_2,
-#         v_2,
-#         alpha2,
-#         w,
-#         z_sigma,
-#         z_sigma2,
-#         # st,
-#         p_outlier=p_outlier,
-#         **wp
-#     )
 
 def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
-                                           v_qval,z_qval,two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size,p_outlier=0): # regression ver2: bounded, a fixed to 1
+                                           v_qval,z_qval,two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size, beta_ndt, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -978,6 +838,7 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
         # st,
         window_start,
         window_size,
+        beta_ndt,
         p_outlier=p_outlier,
         **wp
     )
