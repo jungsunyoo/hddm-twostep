@@ -574,7 +574,7 @@ class HDDMrl(HDDM):
         # wfpt_parents["z1"] = knodes["z1_bottom"] if self.z_reg else 100.00
         # wfpt_parents["z2"] = knodes["z2_bottom"] if self.z_reg else 100.00
 
-        wfpt_parents['beta_ndt'] = knodes['beta_ndt_bottom'] if self.regress_ndt else 100.00
+        wfpt_parents["beta_ndt"] = knodes["beta_ndt_bottom"] if self.regress_ndt else 100.00
 
         if self.v_reg: # if using v_regression 
             wfpt_parents['v'] = 100.00
