@@ -366,6 +366,13 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
+
+                knodes.update(
+                    self._create_family_normal_normal_hnormal(
+                        "z_scaler", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
+                    )
+                )
+            if self.regress_ndt:
                 knodes.update(
                     self._create_family_normal(
                         "beta_ndt",
@@ -377,12 +384,6 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-                knodes.update(
-                    self._create_family_normal_normal_hnormal(
-                        "z_scaler", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
-                    )
-                )
-
 
             if self.dual:
                 knodes.update(
