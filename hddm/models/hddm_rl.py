@@ -67,6 +67,7 @@ class HDDMrl(HDDM):
         self.regress_ndt = kwargs.pop("regress_ndt", False)
         self.regress_ndt2 = kwargs.pop("regress_ndt2", False)
 
+        self.choice_model = False # just a placeholder for compatibility
 
         self.wfpt_rl_class = WienerRL
 
