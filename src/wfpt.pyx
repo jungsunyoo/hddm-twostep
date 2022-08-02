@@ -768,7 +768,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       # double sz,
                       double t,
                       int nstates,
-                      double v_qval, double z_qval,
+                      # double v_qval, double z_qval,
                       double v_interaction, double z_interaction,
                       double two_stage,
 
@@ -780,7 +780,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double w, double w2, double z_scaler,
                       double z_sigma, double z_sigma2,
                       double window_start, double window_size,
-                      double beta_ndt,
+                      double beta_ndt, double beta_ndt2,
 
 
                       # double st,
@@ -794,8 +794,8 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     # else:
     #     pos_alfa = pos_alpha
 
-    if a==100.00: # if fixed threshold
-        a = 1
+    # if a==100.00: # if fixed threshold
+    #     a = 1
 
     # if a_2 == 100.00: # if shared threshold
     #     a_2 = a
@@ -826,7 +826,8 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
     cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
 
-    cdef np.ndarray[double, ndim=2] ndt_counter = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
+    cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
+    cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
 
 
     cdef double dtQ1
@@ -881,10 +882,11 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
 
-    if v0 == 100.00:
-        v0 = 0.00
-    if z0 == 100.00:
-        z0 = 0.00
+    # if v0 == 100.00:
+    #     v0 = 0.00
+    # if z0 == 100.00:
+    #     z0 = 0.00
+
     # if alpha2==100.00: # if either only 1st stage or don't share lr:
 
 
@@ -965,41 +967,42 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
                         # v1_ = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
 
-                        if v_qval == 0:
-                            if v_interaction == 100.00: # if don't use interaction term
+                        # if v_qval == 0:
+                        #     if v_interaction == 100.00: # if don't use interaction term
                                 # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
 
-                                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
+                                # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) # use both Qvals
 
-                            else: # if use interaction term
-                                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-                        elif v_qval == 1: # just mb
-                            v_ = v0 + (dtq_mb * v1)
-                        elif v_qval == 2:
-                            v_ = v0 + (dtq_mf * v2) # just qmf
+                            # else: # if use interaction term
+                        v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+                        # elif v_qval == 1: # just mb
+                        #     v_ = v0 + (dtq_mb * v1)
+                        # elif v_qval == 2:
+                        #     v_ = v0 + (dtq_mf * v2) # just qmf
                     else: # if don't use v_reg:
-                        if v_qval == 0: # use both qmb and qmf
-                            qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-                            dtq = qs[1] - qs[0]
-                            v_ = dtq * v
-                        elif v_qval == 1:
-                            v_ = dtq_mb * v
-                        elif v_qval==2:
-                            v_ = dtq_mf * v
+                        # if v_qval == 0: # use both qmb and qmf
+                        qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+                        dtq = qs[1] - qs[0]
+                        v_ = dtq * v
+                        # elif v_qval == 1:
+                        #     v_ = dtq_mb * v
+                        # elif v_qval==2:
+                        #     v_ = dtq_mf * v
 
-                    if z0 != 100.00: # if use z_reg:
+                    # if z == 0.5: # if use z_reg:
+                    if w2 == 100.00: # if use z_reg
                         # Transform regression parameters so that >0
 
-                        if z_qval == 0:
-                            if z_interaction == 100.00: # if don't use interaction term
-                                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) # use both Qvals
-                            else:
-                                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+                        # if z_qval == 0:
+                        #     if z_interaction == 100.00: # if don't use interaction term
+                        #         z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) # use both Qvals
+                        #     else:
+                        z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
 
-                        elif z_qval == 1: # just mb
-                            z_ = z0 + (dtq_mb * z1)
-                        elif z_qval == 2:
-                            z_ = z0 + (dtq_mf * z2) # just qmf
+                        # elif z_qval == 1: # just mb
+                        #     z_ = z0 + (dtq_mb * z1)
+                        # elif z_qval == 2:
+                        #     z_ = z0 + (dtq_mf * z2) # just qmf
                         sig = 1/(1+np.exp(-z_))
                     else: # if don't use z_reg:
                         qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
@@ -1012,14 +1015,19 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     rt = x1s[i]
 
+                    # if (beta_ndt != 100.00) and (beta_ndt2 != 100.00): # if regressing ndt as a function of experience
+                        # t_ = beta_ndt * ndt_counter_set[s1s[i], 0] + t
+                        # 1. log of the average
+                        # t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + t
+                        # 2. as a set
+                        # t_ = beta_ndt * np.log(ndt_counter_set[s1s[i],0]) + t
+                        # 3. both (for now)
+                    t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + t
 
-                    # if isleft1s[i] == 0: # if chosen right
-                    #     rt = -rt
-                    #     v_ = -v_
-                    if beta_ndt != 100.00: # if regressing ndt as a function of experience
-                        t_ = beta_ndt * ndt_counter[s1s[i], 1]
-                    else:
-                        t_ = t
+                    # elif (beta_ndt==100.00) and (beta_ndt2 == 100.00):
+                    #     t_ = t
+                    # else:
+                    #     raise AssertionError ("Invalid model specification: ndt")
 
                     # p = full_pdf(rt, (dtq * v), sv, a, z,
                     #              sz, t, st, err, n_st, n_sz, use_adaptive, simps_err)
@@ -1096,8 +1104,10 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             # cdef np.ndarray[double, ndim=2] ndt_counter = np.ones(
             #     (comb(nstates, 2, exact=True), 1))  # first-stage MF Q-values
 
-            ndt_counter[s1s[i],1] += 1
+            ndt_counter_set[s1s[i],0] += 1
+            ndt_counter_ind[s2s[i],0] += 1
 
+            # just update 1st-stage MF values if estimating
             dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
             qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
 
