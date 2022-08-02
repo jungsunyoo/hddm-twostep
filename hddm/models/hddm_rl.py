@@ -128,6 +128,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.regress_ndt2:
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "beta_ndt2",
@@ -374,6 +375,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.regress_ndt2:
                 knodes.update(
                     self._create_family_normal(
                         "beta_ndt2",
