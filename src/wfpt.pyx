@@ -1037,8 +1037,8 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         #     alfa * (feedbacks[0] - qs[responses[0]])
 
 
-
-        agent = BayesianQ_Agent((nstates,2,))
+   
+        agent = BayesianQ_Agent(nstates,2)
         # def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
 
 
