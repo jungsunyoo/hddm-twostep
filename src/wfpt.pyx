@@ -66,76 +66,76 @@ class BayesianQ_Agent:
         self.Qmf_sds_estimates_mu = np.ones((self.action_size, comb(self.state_size,2,exact=True))) * -2. #np.ones((3, self.D)) * -2.
         self.Qmf_sds_estimates_sd = np.ones((self.action_size, comb(self.state_size,2,exact=True))) * 10. #np.ones((3, self.D)) * 10.
 
-        def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
+    def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
 
-            if self.model is None:
-                return random.randrange(self.action_size)
+        if self.model is None:
+            return random.randrange(self.action_size)
 
-            def calculate_VPI(mus, sds):
+        def calculate_VPI(mus, sds):
 
-                def gain(i, i2, x):
-                    gains = []
-                    for j in range(len(mus)):
-                        if j == i:
-                            # special case: this is the best action
-                            g = mus[i2] - np.minimum(x, mus[i2])
-                        else:
-                            g = np.maximum(x, mus[i]) - mus[i]
+            def gain(i, i2, x):
+                gains = []
+                for j in range(len(mus)):
+                    if j == i:
+                        # special case: this is the best action
+                        g = mus[i2] - np.minimum(x, mus[i2])
+                    else:
+                        g = np.maximum(x, mus[i]) - mus[i]
 
-                        gains.append(g)
+                    gains.append(g)
 
-                    gains = np.reshape(np.array(gains), [-1, len(x)]).transpose()
-                    return gains
+                gains = np.reshape(np.array(gains), [-1, len(x)]).transpose()
+                return gains
 
-                SAMPLE_SIZE = 1000
-                Q_LOW = -1.
-                Q_HIGH = 1.
-                x = np.random.uniform(Q_LOW, Q_HIGH, SAMPLE_SIZE)
-                x = np.reshape(x, [-1, 1])
+            SAMPLE_SIZE = 1000
+            Q_LOW = -1.
+            Q_HIGH = 1.
+            x = np.random.uniform(Q_LOW, Q_HIGH, SAMPLE_SIZE)
+            x = np.reshape(x, [-1, 1])
 
-                dist = st.norm(mus, np.exp(sds))
+            dist = st.norm(mus, np.exp(sds))
 
-                probs = dist.pdf(x)
+            probs = dist.pdf(x)
 
-                best_action_idx = np.argmax(mus)
+            best_action_idx = np.argmax(mus)
 
-                tmp_mus = np.copy(mus)
-                tmp_mus[best_action_idx] = -9999.
-                second_best_action_idx = np.argmax(tmp_mus)
+            tmp_mus = np.copy(mus)
+            tmp_mus[best_action_idx] = -9999.
+            second_best_action_idx = np.argmax(tmp_mus)
 
-                gains = gain(best_action_idx, second_best_action_idx, x)
+            gains = gain(best_action_idx, second_best_action_idx, x)
 
-                return np.mean(gains * probs, axis=0)
+            return np.mean(gains * probs, axis=0)
 
-            if stage==1: # 1st stage -> get TM & 2nd-stage Q values
-                planets = state
-                # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
-                planet1_mus = self.Qmb_mus_estimates[:,planets[0]]
-                planet2_mus = self.Qmb_mus_estimates[:,planets[1]]
+        if stage==1: # 1st stage -> get TM & 2nd-stage Q values
+            planets = state
+            # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+            planet1_mus = self.Qmb_mus_estimates[:,planets[0]]
+            planet2_mus = self.Qmb_mus_estimates[:,planets[1]]
 
-                planet1_sds = self.Qmb_sds_estimates[:,planets[0]]
-                planet2_sds = self.Qmb_sds_estimates[:,planets[1]]
-                if use_explo:
-                    action_scores_1 =  calculate_VPI(planet1_mus, planet1_sds) + planet1_mus
-                    action_scores_2 =  calculate_VPI(planet2_mus, planet2_sds) + planet2_mus
-                else:
-                    action_scores_1 = planet1_mus
-                    action_scores_2 = planet2_mus
+            planet1_sds = self.Qmb_sds_estimates[:,planets[0]]
+            planet2_sds = self.Qmb_sds_estimates[:,planets[1]]
+            if use_explo:
+                action_scores_1 =  calculate_VPI(planet1_mus, planet1_sds) + planet1_mus
+                action_scores_2 =  calculate_VPI(planet2_mus, planet2_sds) + planet2_mus
+            else:
+                action_scores_1 = planet1_mus
+                action_scores_2 = planet2_mus
 
-                return np.dot(Tm, [np.max(action_scores_1), np.max(action_scores_2)]) # Qmb
-            elif stage==2: # 2nd stage -> directly pick between 2nd-stage Q values
-                state_idx = state
-                state_mus = self.Qmb_mus_estimates[:, state_idx]
-                state_sds = self.Qmb_sds_estimates[:, state_idx]
+            return np.dot(Tm, [np.max(action_scores_1), np.max(action_scores_2)]) # Qmb
+        elif stage==2: # 2nd stage -> directly pick between 2nd-stage Q values
+            state_idx = state
+            state_mus = self.Qmb_mus_estimates[:, state_idx]
+            state_sds = self.Qmb_sds_estimates[:, state_idx]
 
-                if use_explo:
-                    VPI_per_action = calculate_VPI(state_mus, state_sds)
-                    action_scores = VPI_per_action + state_mus
-                    # idx_selected_action = np.argmax(action_scores)
+            if use_explo:
+                VPI_per_action = calculate_VPI(state_mus, state_sds)
+                action_scores = VPI_per_action + state_mus
+                # idx_selected_action = np.argmax(action_scores)
 
-                    return action_scores
-                else:
-                    return np.argmax(state_mus)
+                return action_scores
+            else:
+                return np.argmax(state_mus)
 
 
     def update(self,state,action,reward):
@@ -155,6 +155,7 @@ class BayesianQ_Agent:
         # qvalues = np.array(full_tensor)
 
         with pm.Model() as self.model:
+
             # state_mus = self.Qmus_estimates[:, state_idx]
             Qmus = pm.Normal('Qmus', mu=self.Qmb_mus_estimates_mu, sd=self.Qmb_mus_estimates_sd, shape=[3, self.D])
             Qsds = pm.Normal('Qsds', mu=self.Qmb_sds_estimates_mu, sd=self.Qmb_sds_estimates_sd, shape=[3, self.D])
@@ -170,6 +171,17 @@ class BayesianQ_Agent:
             mean_field = pm.fit(n=15000, method='advi', obj_optimizer=pm.adam(learning_rate=0.1))
             self.trace = mean_field.sample(5000)
 
+        # with VAR = EXPR:
+        #     try:
+        #         BLOCK
+        #     finally:
+        #         VAR.__exit__()
+
+
+
+
+
+
         self.Qmb_mus_estimates = np.mean(self.trace['Qmus'], axis=0)
         self.Qmb_sds_estimates = np.mean(self.trace['Qsds'], axis=0)
 
@@ -180,6 +192,7 @@ class BayesianQ_Agent:
         self.Qmb_sds_estimates_sd = np.std(self.trace['Qsds'], axis=0)
 
         self.reset_memory()
+        return
     def forget(self, gamma, state, action):
 
         # qs_mb[s_, a_] *= (1 - gamma_)
@@ -504,8 +517,12 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if w2 != 100.00:
             w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
 
-        if beta_ndt != 100.00:
-            beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
+        # if beta_ndt != 100.00:
+        #     beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
+        #
+        # if beta_ndt2 != 100.00:
+        #     beta_ndt2 = (2.718281828459**beta_ndt2) / (1 + 2.718281828459**beta_ndt2)
+
 
         # don't calculate pdf for first trial but still update q
         # if feedbacks[0] > qs[responses[0]]:
@@ -1019,8 +1036,8 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if w2 != 100.00:
             w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
 
-        if beta_ndt != 100.00:
-            beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
+        # if beta_ndt != 100.00:
+        #     beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
 
 
 
@@ -1037,7 +1054,7 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         #     alfa * (feedbacks[0] - qs[responses[0]])
 
 
-   
+
         agent = BayesianQ_Agent(nstates,2)
         # def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
 
