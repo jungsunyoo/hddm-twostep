@@ -154,44 +154,43 @@ class BayesianQ_Agent:
         # 3 - reward
         # qvalues = np.array(full_tensor)
 
-        with pm.Model() as self.model:
-
-            # state_mus = self.Qmus_estimates[:, state_idx]
-            Qmus = pm.Normal('Qmus', mu=self.Qmb_mus_estimates_mu, sd=self.Qmb_mus_estimates_sd, shape=[3, self.D])
-            Qsds = pm.Normal('Qsds', mu=self.Qmb_sds_estimates_mu, sd=self.Qmb_sds_estimates_sd, shape=[3, self.D])
-
-            # idx0 = qvalues[:, 0].astype(int) action
-            # idx1 = qvalues[:, 1].astype(int) state
-            idx0 = action
-            idx1 = state
-
-            # pm.Normal('likelihood', mu=Qmus[idx0, idx1], sd=np.exp(Qsds[idx0, idx1]), observed=qvalues[:, 2])
-            pm.Normal('likelihood', mu=Qmus[idx0, idx1], sd=np.exp(Qsds[idx0, idx1]), observed=reward)
-
-            mean_field = pm.fit(n=15000, method='advi', obj_optimizer=pm.adam(learning_rate=0.1))
-            self.trace = mean_field.sample(5000)
-
-        # with VAR = EXPR:
-        #     try:
-        #         BLOCK
-        #     finally:
-        #         VAR.__exit__()
 
 
-
-
-
-
-        self.Qmb_mus_estimates = np.mean(self.trace['Qmus'], axis=0)
-        self.Qmb_sds_estimates = np.mean(self.trace['Qsds'], axis=0)
-
-        self.Qmb_mus_estimates_mu = self.Qmb_mus_estimates
-        self.Qmb_mus_estimates_sd = np.std(self.trace['Qmus'], axis=0)
-
-        self.Qmb_sds_estimates_mu = self.Qmb_sds_estimates
-        self.Qmb_sds_estimates_sd = np.std(self.trace['Qsds'], axis=0)
-
-        self.reset_memory()
+        # COMMENT THIS OUT FOR NOW TO RUN OTHER MODELS THAT DON'T USE BAYESIAN-Q
+        # with pm.Model() as self.model:
+        #
+        #     # state_mus = self.Qmus_estimates[:, state_idx]
+        #     Qmus = pm.Normal('Qmus', mu=self.Qmb_mus_estimates_mu, sd=self.Qmb_mus_estimates_sd, shape=[3, self.D])
+        #     Qsds = pm.Normal('Qsds', mu=self.Qmb_sds_estimates_mu, sd=self.Qmb_sds_estimates_sd, shape=[3, self.D])
+        #
+        #     # idx0 = qvalues[:, 0].astype(int) action
+        #     # idx1 = qvalues[:, 1].astype(int) state
+        #     idx0 = action
+        #     idx1 = state
+        #
+        #     # pm.Normal('likelihood', mu=Qmus[idx0, idx1], sd=np.exp(Qsds[idx0, idx1]), observed=qvalues[:, 2])
+        #     pm.Normal('likelihood', mu=Qmus[idx0, idx1], sd=np.exp(Qsds[idx0, idx1]), observed=reward)
+        #
+        #     mean_field = pm.fit(n=15000, method='advi', obj_optimizer=pm.adam(learning_rate=0.1))
+        #     self.trace = mean_field.sample(5000)
+        #
+        # # with VAR = EXPR:
+        # #     try:
+        # #         BLOCK
+        # #     finally:
+        # #         VAR.__exit__()
+        #
+        #
+        # self.Qmb_mus_estimates = np.mean(self.trace['Qmus'], axis=0)
+        # self.Qmb_sds_estimates = np.mean(self.trace['Qsds'], axis=0)
+        #
+        # self.Qmb_mus_estimates_mu = self.Qmb_mus_estimates
+        # self.Qmb_mus_estimates_sd = np.std(self.trace['Qmus'], axis=0)
+        #
+        # self.Qmb_sds_estimates_mu = self.Qmb_sds_estimates
+        # self.Qmb_sds_estimates_sd = np.std(self.trace['Qsds'], axis=0)
+        #
+        # self.reset_memory()
         return
     def forget(self, gamma, state, action):
 
