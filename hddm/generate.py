@@ -743,6 +743,8 @@ def simulation(
     pos_alpha = kwargs.pop("pos_alpha", False)
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
+    beta_ndt = kwargs.pop("beta_ndt", False)
+    beta_ndt2 = kwargs.pop("beta_ndt2", False)
 
     all_data_response = []
     all_data_rt = []
@@ -764,6 +766,9 @@ def simulation(
     z_scalerg = z_scaler
 
     Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
+
+    ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
+    ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
 
     for s in range(0, subjs):
         # if
@@ -885,6 +890,14 @@ def simulation(
                 z_ = dtq * z_scaler
                 sig = 1 / (1 + np.exp(-z_))
 
+            if v0 or v1 or v2 or v_interaction:
+                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+            if z0 or z1 or z2 or z_interaction:
+                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+                sig = 1 / (1 + np.exp(-z_))
+            if beta_ndt or beta_ndt2:
+                t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[i], 0]) * beta_ndt2 + t
+
             # if z0:
             #     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
             #     sig = 1 / (1 + np.exp(-z_))
@@ -899,7 +912,7 @@ def simulation(
             # x = simulator_cv([v_, a, sig, t])
 
             data1, params1 = hddm.generate.gen_rand_data(
-                {"a": a, "t": t, "v": v_, "z": sig},
+                {"a": a, "t": t_, "v": v_, "z": sig},
                 # subjs=1, size=1
                 size=1000, subjs=1  # make 1,000 simulations?
             )
@@ -918,7 +931,8 @@ def simulation(
                 )
                 all_data_rt2.append(data2.rt)
                 all_data_response2.append(data2.response)
-
+            ndt_counter_set[s1s[j], 0] += 1
+            ndt_counter_ind[s2s[j], 0] += 1
             # Update test fold
             dtQ1 = qs_mb[s2s[j], responses2[j]] - qs_mf[
                 s1s[j], responses1[j]]  # delta stage 1

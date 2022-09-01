@@ -572,7 +572,9 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     rt = x1s[i]
 
                     # Modeling ndt
-                    t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + t
+                    t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + \
+                         np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + \
+                         t
 
                     p = full_pdf(rt, v_, sv, a, sig * a,
                                  sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
