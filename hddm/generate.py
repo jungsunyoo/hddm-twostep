@@ -975,7 +975,7 @@ def simulation(
                 z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
                 sig = 1 / (1 + np.exp(-z_))
             if beta_ndt or beta_ndt2:
-                t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[i], 0]) * beta_ndt2 + t
+                t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[j], 0]) * beta_ndt2 + t
 
             df.loc[j, "q_up_1"] = Qmb[1] # NEED TO CHANGE LATER FOR GENERALIZABILITY
             df.loc[j, "q_low_1"] = Qmb[0] # NEED TO CHANGE LATER FOR GENERALIZABILITY
