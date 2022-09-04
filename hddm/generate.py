@@ -676,19 +676,20 @@ def simulation(
         # x_train,  # this is the dataframe of data of the given participant
         x,
         # fold,
-        # size=1,
-        # p_upper=1,
-        # p_lower=0,
-        # # z=0.5,
-        # q_init=0.5,
-        # # pos_alpha=float("nan"),
-        # # subjs=1,
-        # split_by=0,
-        # mu_upper=1,
-        # mu_lower=0,
-        # sd_upper=0.1,
-        # sd_lower=0.1,
-        # binary_outcome=True,
+        size=1,
+        p_upper=1,
+        p_lower=0,
+        # z=0.5,
+        q_init=0.5,
+        # pos_alpha=float("nan"),
+        # subjs=1,
+        split_by=0,
+        mu_upper=1,
+        mu_lower=0,
+        sd_upper=0.1,
+        sd_lower=0.1,
+        binary_outcome=True,
+        n_simulation=1, # number of simulations per trial
         # uncertainty=False,
         **kwargs
 ):
@@ -697,13 +698,13 @@ def simulation(
 
     # nstates = max(x_train["state2"].values.astype(int)) + 1
 
-    subjs = len(np.unique(x["subj_idx"]))
-    q = x["q_init"].iloc[0]
+    # subjs = len(np.unique(x["subj_idx"]))
+    # q = x["q_init"].iloc[0]
 
-    rt1 = x["rt1"].values
-    rt2 = x["rt2"].values
-    responses1 = x["response1"].values.astype(int)
-    responses2 = x["response2"].values.astype(int)
+    actual_rt1 = x["rt1"].values
+    actual_rt2 = x["rt2"].values
+    actual_responses1 = x["response1"].values.astype(int)
+    actual_responses2 = x["response2"].values.astype(int)
     s1s = x["state1"].values.astype(int)
     s2s = x["state2"].values.astype(int)
 
@@ -745,13 +746,8 @@ def simulation(
     alpha2 = kwargs.pop("alpha2", False)
     beta_ndt = kwargs.pop("beta_ndt", False)
     beta_ndt2 = kwargs.pop("beta_ndt2", False)
+    all_data = []
 
-    all_data_response = []
-    all_data_rt = []
-    all_data_response1 = []
-    all_data_rt1 = []
-    all_data_response2 = []
-    all_data_rt2 = []
     tg = t
     ag = a
     tg2 = t_2
@@ -864,7 +860,95 @@ def simulation(
 
         state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
 
-        for j in range(total_x_len):  # loop over total data, including train
+
+        n = size
+        q_up = np.tile([q_init], n)
+        q_low = np.tile([q_init], n)
+        response1 = np.tile([0.5], n)
+        response2 = np.tile([0.5], n)
+        feedback = np.tile([0.5], n)
+        rt1 = np.tile([0], n)
+        rt2 = np.tile([0], n)
+        if binary_outcome:
+            rew_up = np.random.binomial(1, p_upper, n).astype(float)
+            rew_low = np.random.binomial(1, p_lower, n).astype(float)
+        else:
+            rew_up = np.random.normal(mu_upper, sd_upper, n)
+            rew_low = np.random.normal(mu_lower, sd_lower, n)
+        sim_drift = np.tile([0], n)
+        sim_bias = np.tile([0], n)
+        # sim_threshold = np.tile([0], n)
+        sim_ndt = np.tile([0], n)
+        subj_idx = np.tile([s], n)
+        actual_response=  np.tile([0], n)
+        actual_rt =  np.tile([0], n)
+
+        d = {
+            "q_up_1": q_up,
+            "q_low_1": q_low,
+            "q_up_2": q_up,
+            "q_low_2": q_low,
+            "sim_drift_1": sim_drift,
+            "sim_drift_2": sim_drift,
+            "sim_bias_1": sim_bias,
+            "sim_bias_2": sim_bias,
+            # "sim_threshold_1": sim_threshold,
+            # "sim_threshold_2": sim_threshold, # exclude because this is not a function of experience
+            "sim_ndt_1": sim_ndt,
+            # "sim_ndt_2": sim_ndt,
+            # "rew_up": rew_up,
+            # "rew_low": rew_low,
+            "response1": response1,
+            "response2": response2,
+
+            "actual_response1": actual_response,
+            "actual_response2": actual_response,
+
+            "rt1": rt1,
+            "rt2": rt2,
+
+            "actual_rt1": actual_rt,
+            "actual_rt2": actual_rt,
+            # "feedback": feedback,
+            "subj_idx": subj_idx,
+            "split_by": split_by,
+            "trial": 1,
+        }
+        df = pd.DataFrame(data=d)
+        df = df[
+            [
+                "q_up_1",
+                "q_low_1",
+                "q_up_2",
+                "q_low_2",
+                "sim_drift_1",
+                "sim_drift_2",
+                "sim_bias_1",
+                "sim_bias_2",
+                "sim_ndt_1",
+                # "sim_ndt_2",
+                # "rew_up",
+                # "rew_low",
+                "response_1",
+                "response_2",
+                "actual_response1",
+                "actual_response2",
+                "rt_1",
+                "rt_2",
+                "actual_rt1",
+                "actual_rt2",
+                "subj_idx",
+                "split_by",
+                "trial",
+            ]
+        ]
+
+
+
+
+
+        for j in range(total_x_len):  # loop over total data
+            df.loc[j, "trial"] = j + 1
 
             # FIRST STAGE
             planets = state_combinations[s1s[j]]
@@ -875,11 +959,6 @@ def simulation(
             dtq_mb = Qmb[1] - Qmb[0]
             dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
 
-            # if v0:  # if use v regression
-            #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-            #
-            # else:  # if don't use v regression
-            #     v_ = scaler
             if w: # use w scaling for drift rate
                 qs = w * Qmb + (1 - w) * qs_mf[s1s[j], :]  # Update for 1st trial
                 dtq = qs[1] - qs[0]
@@ -898,24 +977,20 @@ def simulation(
             if beta_ndt or beta_ndt2:
                 t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[i], 0]) * beta_ndt2 + t
 
-            # if z0:
-            #     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
-            #     sig = 1 / (1 + np.exp(-z_))
-            # else:
-            #     sig = z
-
-                # rt = x1s[i]
-
-            # if isleft1s[i] == 0: # if chosen right
-            #     rt = -rt
-            #     v_ = -v_
-            # x = simulator_cv([v_, a, sig, t])
-
+            df.loc[j, "q_up_1"] = Qmb[1] # NEED TO CHANGE LATER FOR GENERALIZABILITY
+            df.loc[j, "q_low_1"] = Qmb[0] # NEED TO CHANGE LATER FOR GENERALIZABILITY
+            df.loc[j, "sim_drift_1"] = v_ #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
+            df.loc[j, "sim_bias_1"] = sig
+            df.loc[j, "sim_ndt_1"] = t_
+            df.loc[j, "actual_rt1"] = actual_rt1[j]
+            df.loc[j, "actual_response1"] = actual_responses1[j]
             data1, params1 = hddm.generate.gen_rand_data(
                 {"a": a, "t": t_, "v": v_, "z": sig},
-                # subjs=1, size=1
-                size=1000, subjs=1  # make 1,000 simulations?
+                subjs=1, size=n_simulation
+                # size=1000, subjs=1  # make 1,000 simulations?
             )
+            df.loc[j, "response1"] = data1.response[0]
+            df.loc[j, "rt1"] = data1.rt[0]
             # SECOND STAGE
             if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
                 qs = qs_mb[s2s[j], :]
@@ -924,52 +999,84 @@ def simulation(
                 # if isleft2_test[j] == 0:  # if chosen right
                 #     v_ = -v_
                 sig = z_2
+
+                df.loc[j, "q_up_2"] = qs[1]  # NEED TO CHANGE LATER FOR GENERALIZABILITY
+                df.loc[j, "q_low_2"] = qs[0]  # NEED TO CHANGE LATER FOR GENERALIZABILITY
+                df.loc[j, "sim_drift_2"] = v_  # (df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
+                df.loc[j, "sim_bias_2"] = sig
+                # df.loc[j, "sim_ndt_1"] = t_
+                df.loc[j, "actual_rt2"] = actual_rt2[j]
+                df.loc[j, "actual_response2"] = actual_responses2[j]
+
                 data2, params2 = hddm.generate.gen_rand_data(
                     {"a": a_2, "t": t_2, "v": v_, "z": sig},
-                    # subjs=1, size=1
-                    size=1000, subjs=1  # make 1,000 simulations?
+                    subjs=1, size=n_simulation
+                    # size=1000, subjs=1  # make 1,000 simulations?
                 )
-                all_data_rt2.append(data2.rt)
-                all_data_response2.append(data2.response)
+                # all_data_rt2.append(data2.rt)
+                # all_data_response2.append(data2.response)
+                df.loc[j, "response2"] = data2.response[0]
+                df.loc[j, "rt2"] = data2.rt[0]
             ndt_counter_set[s1s[j], 0] += 1
             ndt_counter_ind[s2s[j], 0] += 1
             # Update test fold
-            dtQ1 = qs_mb[s2s[j], responses2[j]] - qs_mf[
-                s1s[j], responses1[j]]  # delta stage 1
-            qs_mf[s1s[j], responses1[j]] = qs_mf[s1s[j], responses1[
+            dtQ1 = qs_mb[s2s[j], actual_responses2[j]] - qs_mf[
+                s1s[j], actual_responses1[j]]  # delta stage 1
+            qs_mf[s1s[j], actual_responses1[j]] = qs_mf[s1s[j], actual_responses1[
                 j]] + alfa * dtQ1  # delta update for qmf
 
-            dtQ2 = feedback[j] - qs_mb[s2s[j], responses2[j]]  # delta stage 2
-            qs_mb[s2s[j], responses2[j]] = qs_mb[s2s[j], responses2[
+            dtQ2 = feedback[j] - qs_mb[s2s[j], actual_responses2[j]]  # delta stage 2
+            qs_mb[s2s[j], actual_responses2[j]] = qs_mb[s2s[j], actual_responses2[
                 j]] + alfa2 * dtQ2  # delta update for qmb
             if lambda_:  # if using eligibility trace
-                qs_mf[s1s[j], responses1[j]] = qs_mf[s1s[j], responses1[
+                qs_mf[s1s[j], actual_responses1[j]] = qs_mf[s1s[j], actual_responses1[
                     j]] + lambda__ * dtQ2  # eligibility trace
 
             # memory decay for unexperienced options in this trial
             if gamma:
                 for s_ in range(nstates):
                     for a_ in range(2):
-                        if (s_ is not s2s[j]) or (a_ is not responses2[j]):
+                        if (s_ is not s2s[j]) or (a_ is not actual_responses2[j]):
                             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
                             qs_mb[s_, a_] *= (1 - gamma_)
 
                 for s_ in range(comb(nstates, 2, exact=True)):
                     for a_ in range(2):
-                        if (s_ is not s1s[j]) or (a_ is not responses1[j]):
+                        if (s_ is not s1s[j]) or (a_ is not actual_responses1[j]):
                             qs_mf[s_, a_] *= (1 - gamma_)
-            all_data_rt1.append(data1.rt)
-            all_data_response1.append(data1.response)
-
-        all_data_rt.append(all_data_rt1)
-        all_data_response.append(all_data_response1)
-        if t_2:  # if 2nd stage is also estimated:
-            all_data_rt.append(all_data_rt2)
-            all_data_response.append(all_data_response2)
 
 
-    # return all_data
-    return all_data_response, all_data_rt
+        all_data.append(df)
+    all_data = pd.concat(all_data, axis=0)
+    all_data = all_data[
+        [
+            "q_up_1",
+            "q_low_1",
+            "q_up_2",
+            "q_low_2",
+            "sim_drift_1",
+            "sim_drift_2",
+            "sim_bias_1",
+            "sim_bias_2",
+            "sim_ndt_1",
+            # "sim_ndt_2",
+            # "rew_up",
+            # "rew_low",
+            "response_1",
+            "response_2",
+            "actual_response1",
+            "actual_response2",
+            "rt_1",
+            "rt_2",
+            "actual_rt1",
+            "actual_rt2",
+            "subj_idx",
+            "split_by",
+            "trial",
+        ]
+    ]
+
+    return all_data
 
 
 # For now, only one participant only
