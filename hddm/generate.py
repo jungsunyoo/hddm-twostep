@@ -1407,8 +1407,8 @@ def simulation(
             df.loc[j, "state1"] = planets[2]
             # SECOND STAGE
             if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
-
-                state_2nd = planets[df.loc[j, "response1"]] if np.random.rand() < 0.7 else planets[int(1-df.loc[j, "response1"])]
+                print(df.loc[j, "response1"])
+                state_2nd = planets[int(df.loc[j, "response1"])] if np.random.rand() < 0.7 else planets[int(1-df.loc[j, "response1"])]
                 df.loc[j, "state2"] = state_2nd.astype(int)
 
                 qs = qs_mb[df.loc[j, "state2"], :]
