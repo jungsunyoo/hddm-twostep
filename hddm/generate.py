@@ -1219,7 +1219,7 @@ def simulation(
 
     # configuring task settings
 
-    states_total = np.array(list(itertools.combinations(np.arange(0, 5), 2)))
+    states_total = np.array(list(itertools.combinations(np.arange(0, nstates), 2)))
     states_total = np.array([(states_total[s][0], states_total[s][1], s)
                              for s in range(comb(nstates, nactions).astype('int'))])
     # states_total
