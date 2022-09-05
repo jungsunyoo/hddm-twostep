@@ -1408,10 +1408,10 @@ def simulation(
             # SECOND STAGE
             if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
 
-                state_2nd = planets[data1.response[0]] if np.random.rand() < 0.7 else planets[1-data1.response[0]]
-                df.loc[j, "state2"] = state_2nd
+                state_2nd = planets[df.loc[j, "response1"]] if np.random.rand() < 0.7 else planets[1-df.loc[j, "response1"]]
+                df.loc[j, "state2"] = state_2nd.astype(int)
 
-                qs = qs_mb[state_2nd, :]
+                qs = qs_mb[df.loc[j, "state2"], :]
                 dtq = qs[1] - qs[0]
                 v_ = dtq * v_2
                 sig = z_2
@@ -1424,17 +1424,17 @@ def simulation(
 
                 df.loc[j, "response2"] = data2.response[0].astype(int)
                 df.loc[j, "rt2"] = data2.rt[0].astype(float)
-                df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, state_2nd, df.loc[j, "response2"]], size=1)
+                df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, df.loc[j, "state2"], df.loc[j, "response2"]], size=1)
 
             ndt_counter_set[planets[2], 0] += 1
-            ndt_counter_ind[state_2nd, 0] += 1
+            ndt_counter_ind[df.loc[j, "state2"], 0] += 1
             # Update test fold
-            dtQ1 = qs_mb[state_2nd, data2.response[0]] - qs_mf[
+            dtQ1 = qs_mb[df.loc[j, "state2"], data2.response[0]] - qs_mf[
                 planets[2], data1.response[0]]  # delta stage 1
             qs_mf[planets[2], data1.response[0]] = qs_mf[planets[2], data1.response[0]] + alfa * dtQ1  # delta update for qmf
 
-            dtQ2 = df.loc[j, "feedback"] - qs_mb[state_2nd, data2.response[0]]  # delta stage 2
-            qs_mb[state_2nd, data2.response[0]] = qs_mb[state_2nd, data2.response[0]] + alfa2 * dtQ2  # delta update for qmb
+            dtQ2 = df.loc[j, "feedback"] - qs_mb[df.loc[j, "state2"], data2.response[0]]  # delta stage 2
+            qs_mb[df.loc[j, "state2"], data2.response[0]] = qs_mb[df.loc[j, "state2"], data2.response[0]] + alfa2 * dtQ2  # delta update for qmb
             if lambda_:  # if using eligibility trace
                 qs_mf[planets[2], data1.response[0]] = qs_mf[[planets[2], data1.response[0]]] + lambda__ * dtQ2  # eligibility trace
 
@@ -1442,7 +1442,7 @@ def simulation(
             if gamma:
                 for s_ in range(nstates):
                     for a_ in range(2):
-                        if (s_ is not state_2nd) or (a_ is not data2.response[0]):
+                        if (s_ is not df.loc[j, "state2"]) or (a_ is not data2.response[0]):
                             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
                             qs_mb[s_, a_] *= (1 - gamma_)
 
