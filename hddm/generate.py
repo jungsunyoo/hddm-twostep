@@ -1098,7 +1098,7 @@ def generate_rewards(ntrials, bounds, sd, choices, nstates):
             else:  # even
                 x_ = [0.75, 0.25] if np.random.rand() < 0.5 else [0.25, 0.75]
                 x.append(x_)
-    print(x)
+    # print(x)
     rewards[0, :, :] = x
 
     for t in np.arange(1, ntrials):
@@ -1408,7 +1408,7 @@ def simulation(
             # SECOND STAGE
             if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
 
-                state_2nd = planets[df.loc[j, "response1"]] if np.random.rand() < 0.7 else planets[1-df.loc[j, "response1"]]
+                state_2nd = planets[df.loc[j, "response1"]] if np.random.rand() < 0.7 else planets[int(1-df.loc[j, "response1"])]
                 df.loc[j, "state2"] = state_2nd.astype(int)
 
                 qs = qs_mb[df.loc[j, "state2"], :]
