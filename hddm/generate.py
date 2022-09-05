@@ -1424,31 +1424,31 @@ def simulation(
 
                 df.loc[j, "response2"] = data2.response[0].astype(int)
                 df.loc[j, "rt2"] = data2.rt[0].astype(float)
-                df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, df.loc[j, "state2"], df.loc[j, "response2"]], size=1)
+                df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, int(df.loc[j, "state2"]), int(df.loc[j, "response2"])], size=1)
 
             ndt_counter_set[planets[2], 0] += 1
-            ndt_counter_ind[df.loc[j, "state2"], 0] += 1
+            ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
             # Update test fold
-            dtQ1 = qs_mb[df.loc[j, "state2"], data2.response[0]] - qs_mf[
-                planets[2], data1.response[0]]  # delta stage 1
-            qs_mf[planets[2], data1.response[0]] = qs_mf[planets[2], data1.response[0]] + alfa * dtQ1  # delta update for qmf
+            dtQ1 = qs_mb[int(df.loc[j, "state2"]), int(data2.response[0])] - qs_mf[
+                int(planets[2]), int(data1.response[0])]  # delta stage 1
+            qs_mf[int(planets[2]), int(data1.response[0])] = qs_mf[int(planets[2]), int(data1.response[0])] + alfa * dtQ1  # delta update for qmf
 
-            dtQ2 = df.loc[j, "feedback"] - qs_mb[df.loc[j, "state2"], data2.response[0]]  # delta stage 2
-            qs_mb[df.loc[j, "state2"], data2.response[0]] = qs_mb[df.loc[j, "state2"], data2.response[0]] + alfa2 * dtQ2  # delta update for qmb
+            dtQ2 = df.loc[j, "feedback"] - qs_mb[int(df.loc[j, "state2"]), int(data2.response[0])]  # delta stage 2
+            qs_mb[int(df.loc[j, "state2"]), int(data2.response[0])] = qs_mb[int(df.loc[j, "state2"]), int(data2.response[0])] + alfa2 * dtQ2  # delta update for qmb
             if lambda_:  # if using eligibility trace
-                qs_mf[planets[2], data1.response[0]] = qs_mf[[planets[2], data1.response[0]]] + lambda__ * dtQ2  # eligibility trace
+                qs_mf[int(planets[2]), int(data1.response[0])] = qs_mf[[int(planets[2]), int(data1.response[0])]] + lambda__ * dtQ2  # eligibility trace
 
             # memory decay for unexperienced options in this trial
             if gamma:
                 for s_ in range(nstates):
                     for a_ in range(2):
-                        if (s_ is not df.loc[j, "state2"]) or (a_ is not data2.response[0]):
+                        if (s_ is not int(df.loc[j, "state2"])) or (a_ is not int(data2.response[0])):
                             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
                             qs_mb[s_, a_] *= (1 - gamma_)
 
                 for s_ in range(comb(nstates, 2, exact=True)):
                     for a_ in range(2):
-                        if (s_ is not planets[2]) or (a_ is not data1.response[0]):
+                        if (s_ is not planets[2]) or (a_ is not int(data1.response[0])):
                             qs_mf[s_, a_] *= (1 - gamma_)
         all_data.append(df)
     all_data = pd.concat(all_data, axis=0)
