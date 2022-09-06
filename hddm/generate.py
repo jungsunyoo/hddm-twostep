@@ -1331,6 +1331,9 @@ def simulation(
         state1 = np.tile([0], ntrials)
         state2 = np.tile([0], ntrials)
 
+        trials = np.tile([0], ntrials)
+        cond = np.tile([0], ntrials)
+
         d = {
             "split_by": split_by,
             "feedback": feedback,
@@ -1341,6 +1344,7 @@ def simulation(
             "q_init": q_init,
             "state1": state1,
             "state2": state2,
+            "trial": trials,
         }
         df = pd.DataFrame(data=d)
         df = df[
@@ -1354,6 +1358,7 @@ def simulation(
                  "q_init",
                  "state1",
                  "state2",
+                 "trial"
                 ]
         ]
 
@@ -1463,6 +1468,7 @@ def simulation(
             "q_init",
             "state1",
             "state2",
+            "trial"
         ]
     ]
 
