@@ -1305,20 +1305,6 @@ def simulation(
         qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
         qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
 
-        # if alpha:
-        #     alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
-        # if gamma:
-        #     gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
-        # if alpha2:
-        #     alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
-        # else:
-        #     alfa2 = alfa
-        # if lambda_:
-        #     lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
-        # if w:
-        #     w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
-        # if w2:
-        #     w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
         if alpha:
             alfa = alpha
         if gamma:
@@ -1405,19 +1391,14 @@ def simulation(
             if beta_ndt or beta_ndt2:
                 t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[planets[2], 0]) * beta_ndt2 + t
 
-            df.loc[j, "q_up_1"] = Qmb[1] # NEED TO CHANGE LATER FOR GENERALIZABILITY
-            df.loc[j, "q_low_1"] = Qmb[0] # NEED TO CHANGE LATER FOR GENERALIZABILITY
-            df.loc[j, "sim_drift_1"] = v_ #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
-            df.loc[j, "sim_bias_1"] = sig
-            df.loc[j, "sim_ndt_1"] = t_
-
             data1, params1 = hddm.generate.gen_rand_data(
                 {"a": a, "t": t_, "v": v_, "z": sig},
                 subjs=1, size=n_simulation
                 # size=1000, subjs=1  # make 1,000 simulations?
             )
             df.loc[j, "response1"] = data1.response[0].astype(int)
-            df.loc[j, "rt1"] = data1.rt[0].astype(float)
+            # df.loc[j, "rt1"] = data1.rt[0].astype(float)
+            df.loc[j, "rt1"] = data1.rt[0].astype(float) + t_ # total time = decision time + ndt
             df.loc[j, "state1"] = planets[2]
             # SECOND STAGE
             if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
@@ -1429,10 +1410,10 @@ def simulation(
                 qs = qs_mb[df.loc[j, "state2"], :]
                 # print(qs)
                 dtq = qs[1] - qs[0]
-                print("dtq: {}".format(dtq))
+                # print("dtq: {}".format(dtq))
                 v_ = dtq * v_2
                 sig = z_2
-                print("a:{}, t:{}, v:{}, z:{}".format(a_2, t_2, v_, sig))
+                # print("a:{}, t:{}, v:{}, z:{}".format(a_2, t_2, v_, sig))
                 data2, params2 = hddm.generate.gen_rand_data(
                     {"a": a_2, "t": t_2, "v": v_, "z": sig},
                     subjs=1, size=n_simulation
@@ -1440,9 +1421,10 @@ def simulation(
                 )
 
                 df.loc[j, "response2"] = data2.response[0].astype(int)
-                df.loc[j, "rt2"] = data2.rt[0].astype(float)
+                # df.loc[j, "rt2"] = data2.rt[0].astype(float)
+                df.loc[j, "rt2"] = data2.rt[0].astype(float) + t_2 # total time = decision time + ndt
                 df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, int(df.loc[j, "state2"]), int(df.loc[j, "response2"])], size=1)
-                print("feedback: {}".format(df.loc[j, "feedback"]))
+                # print("feedback: {}".format(df.loc[j, "feedback"]))
 
             ndt_counter_set[planets[2], 0] += 1
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
