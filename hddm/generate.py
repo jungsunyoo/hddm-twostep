@@ -1424,14 +1424,15 @@ def simulation(
                 # print(df.loc[j, "response1"])
                 state_2nd = planets[int(df.loc[j, "response1"])] if np.random.rand() < 0.7 else planets[int(1-df.loc[j, "response1"])]
                 df.loc[j, "state2"] = state_2nd.astype(int)
-                print(state_2nd)
+                # print(state_2nd)
 
                 qs = qs_mb[df.loc[j, "state2"], :]
-                print(qs)
+                # print(qs)
                 dtq = qs[1] - qs[0]
+                print("dtq: {}".format(dtq))
                 v_ = dtq * v_2
                 sig = z_2
-
+                print("a:{}, t:{}, v:{}, z:{}".format(a_2, t_2, v_, sig))
                 data2, params2 = hddm.generate.gen_rand_data(
                     {"a": a_2, "t": t_2, "v": v_, "z": sig},
                     subjs=1, size=n_simulation
@@ -1441,7 +1442,7 @@ def simulation(
                 df.loc[j, "response2"] = data2.response[0].astype(int)
                 df.loc[j, "rt2"] = data2.rt[0].astype(float)
                 df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, int(df.loc[j, "state2"]), int(df.loc[j, "response2"])], size=1)
-                print(df.loc[j, "feedback"])
+                print("feedback: {}".format(df.loc[j, "feedback"]))
 
             ndt_counter_set[planets[2], 0] += 1
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
