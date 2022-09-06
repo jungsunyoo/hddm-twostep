@@ -1305,20 +1305,20 @@ def simulation(
         qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
         qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
 
-        if alpha:
-            alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
-        if gamma:
-            gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
-        if alpha2:
-            alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
-        else:
-            alfa2 = alfa
-        if lambda_:
-            lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
-        if w:
-            w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
-        if w2:
-            w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
+        # if alpha:
+        #     alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+        # if gamma:
+        #     gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
+        # if alpha2:
+        #     alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
+        # else:
+        #     alfa2 = alfa
+        # if lambda_:
+        #     lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
+        # if w:
+        #     w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
+        # if w2:
+        #     w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
 
         response1 = np.tile([0.5], ntrials)
         response2 = np.tile([0.5], ntrials)
@@ -1427,6 +1427,7 @@ def simulation(
                 df.loc[j, "response2"] = data2.response[0].astype(int)
                 df.loc[j, "rt2"] = data2.rt[0].astype(float)
                 df.loc[j, "feedback"] = np.random.binomial(1, rewards[j, int(df.loc[j, "state2"]), int(df.loc[j, "response2"])], size=1)
+                print(df.loc[j, "feedback"])
 
             ndt_counter_set[planets[2], 0] += 1
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
