@@ -1410,7 +1410,8 @@ def simulation(
                 # print(df.loc[j, "response1"])
                 state_2nd = planets[int(df.loc[j, "response1"])] if np.random.rand() < 0.7 else planets[int(1-df.loc[j, "response1"])]
                 df.loc[j, "state2"] = state_2nd.astype(int)
-
+                print(state_2nd)
+                print(qs)
                 qs = qs_mb[df.loc[j, "state2"], :]
                 dtq = qs[1] - qs[0]
                 v_ = dtq * v_2
