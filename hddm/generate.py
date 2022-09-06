@@ -1319,6 +1319,20 @@ def simulation(
         #     w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
         # if w2:
         #     w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
+        if alpha:
+            alfa = alpha
+        if gamma:
+            gamma_ = gamma
+        if alpha2:
+            alfa2 = alpha2
+        else:
+            alfa2 = alfa
+        if lambda_:
+            lambda__ = lambda_
+        if w:
+            w = w
+        if w2:
+            w2 = w2
 
         response1 = np.tile([0.5], ntrials)
         response2 = np.tile([0.5], ntrials)
