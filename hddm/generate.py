@@ -962,11 +962,17 @@ def posterior_predictive_check(
 
             if v0 or v1 or v2 or v_interaction:
                 v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+            # else:
+            #     v_ = v
             if z0 or z1 or z2 or z_interaction:
                 z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
                 sig = 1 / (1 + np.exp(-z_))
+            else:
+                sig  = z
             if beta_ndt or beta_ndt2:
                 t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[j], 0]) * beta_ndt2 + t
+            else:
+                t_ = t
             if v1 and not v2: # only simulate MB Q VALUES
                 df.loc[j, "q_up_1"] = Qmb[1]
                 df.loc[j, "q_low_1"] = Qmb[0]
