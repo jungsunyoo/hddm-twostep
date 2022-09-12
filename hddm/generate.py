@@ -938,11 +938,6 @@ def posterior_predictive_check(
                 "trial",
             ]
         ]
-
-
-
-
-
         for j in range(total_x_len):  # loop over total data
             df.loc[j, "trial"] = j + 1
 
@@ -972,9 +967,14 @@ def posterior_predictive_check(
                 sig = 1 / (1 + np.exp(-z_))
             if beta_ndt or beta_ndt2:
                 t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[j], 0]) * beta_ndt2 + t
-
-            df.loc[j, "q_up_1"] = Qmb[1] # NEED TO CHANGE LATER FOR GENERALIZABILITY
-            df.loc[j, "q_low_1"] = Qmb[0] # NEED TO CHANGE LATER FOR GENERALIZABILITY
+            if v1 and not v2: # only simulate MB Q VALUES
+                df.loc[j, "q_up_1"] = Qmb[1]
+                df.loc[j, "q_low_1"] = Qmb[0]
+            elif v2 and not v1: # only simulate MF Q VALUES
+                df.loc[j, "q_up_1"] = qs_mf[s1s[j], 1]
+                df.loc[j, "q_low_1"] = qs_mf[s1s[j], 0]
+            else:
+                raise AssertionError("Either specify MB or MF")
             df.loc[j, "sim_drift_1"] = v_ #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
             df.loc[j, "sim_bias_1"] = sig
             df.loc[j, "sim_ndt_1"] = t_
@@ -992,12 +992,11 @@ def posterior_predictive_check(
                 qs = qs_mb[s2s[j], :]
                 dtq = qs[1] - qs[0]
                 v_ = dtq * v_2
-                # if isleft2_test[j] == 0:  # if chosen right
-                #     v_ = -v_
+
                 sig = z_2
 
-                df.loc[j, "q_up_2"] = qs[1]  # NEED TO CHANGE LATER FOR GENERALIZABILITY
-                df.loc[j, "q_low_2"] = qs[0]  # NEED TO CHANGE LATER FOR GENERALIZABILITY
+                df.loc[j, "q_up_2"] = qs[1]
+                df.loc[j, "q_low_2"] = qs[0]
                 df.loc[j, "sim_drift_2"] = v_  # (df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
                 df.loc[j, "sim_bias_2"] = sig
                 # df.loc[j, "sim_ndt_1"] = t_
@@ -1009,13 +1008,11 @@ def posterior_predictive_check(
                     subjs=1, size=n_simulation
                     # size=1000, subjs=1  # make 1,000 simulations?
                 )
-                # all_data_rt2.append(data2.rt)
-                # all_data_response2.append(data2.response)
                 df.loc[j, "response2"] = data2.response[0]
                 df.loc[j, "rt2"] = data2.rt[0]
             ndt_counter_set[s1s[j], 0] += 1
             ndt_counter_ind[s2s[j], 0] += 1
-            # Update test fold
+
             dtQ1 = qs_mb[s2s[j], actual_responses2[j]] - qs_mf[
                 s1s[j], actual_responses1[j]]  # delta stage 1
             qs_mf[s1s[j], actual_responses1[j]] = qs_mf[s1s[j], actual_responses1[
@@ -1041,7 +1038,6 @@ def posterior_predictive_check(
                         if (s_ is not s1s[j]) or (a_ is not actual_responses1[j]):
                             qs_mf[s_, a_] *= (1 - gamma_)
 
-
         all_data.append(df)
     all_data = pd.concat(all_data, axis=0)
     all_data = all_data[
@@ -1055,9 +1051,7 @@ def posterior_predictive_check(
             "sim_bias_1",
             "sim_bias_2",
             "sim_ndt_1",
-            # "sim_ndt_2",
-            # "rew_up",
-            # "rew_low",
+
             "response1",
             "response2",
             "actual_response1",
@@ -1115,59 +1109,18 @@ def generate_rewards(ntrials, bounds, sd, choices, nstates):
 # (empirical data is not needed)
 # ntrials, bounds, sd, choices, nstates
 def simulation(
-        # x_train,  # this is the dataframe of data of the given participant
-        # x,
-        # fold,
         nstates,
         bounds = [0,1],
         sd = 0.025,
         # choices = 2,
         ntrials = 300,
         nactions=2,
-        size=1,
-        p_upper=1,
-        p_lower=0,
-        # z=0.5,
-        q_init=0.5,
-        # pos_alpha=float("nan"),
-        # subjs=1,
-        split_by=0,
-        mu_upper=1,
-        mu_lower=0,
-        sd_upper=0.1,
-        sd_lower=0.1,
-        binary_outcome=True,
         n_simulation=1, # number of simulations per trial
         subjs = 1,
         q=0.5,
         # uncertainty=False,
         **kwargs
 ):
-    # Receiving behavioral data
-    # total_x_len = ntrials #len(x)  # total length of data
-    #
-    # # nstates = max(x_train["state2"].values.astype(int)) + 1
-    #
-    # # subjs = len(np.unique(x["subj_idx"]))
-    # # q = x["q_init"].iloc[0]
-    #
-    # actual_rt1 = x["rt1"].values
-    # actual_rt2 = x["rt2"].values
-    # actual_responses1 = x["response1"].values.astype(int)
-    # actual_responses2 = x["response2"].values.astype(int)
-    # s1s = x["state1"].values.astype(int)
-    # s2s = x["state2"].values.astype(int)
-    #
-    #
-    # q = x["q_init"].iloc[0]
-    # feedback = x["feedback"].values.astype(float)
-    # split_by = x["split_by"].values.astype(int)
-    #
-    # # JY added for two-step tasks on 2021-12-05
-    # nstates = max(x["state2"].values.astype(int)) + 1
-    #
-    # subjs = len(np.unique(x["subj_idx"]))
-
     # Receiving all keyword arguments
     a = kwargs.pop("a", 1) # return 1 as default (if not otherwise specified)
     a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
@@ -1225,8 +1178,6 @@ def simulation(
     # states_total
     all_planets = matlib.repmat(states_total, int(ntrials / len(states_total)), 1)
     np.random.shuffle(all_planets)
-
-
 
     for s in range(0, subjs):
         # if
