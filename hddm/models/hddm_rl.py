@@ -9,7 +9,7 @@ import wfpt
 from kabuki.hierarchical import Knode
 from kabuki.utils import stochastic_from_dist
 from hddm.models import HDDM
-from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step #, wiener_like_rlddm_bayesianQ #wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
+from wfpt import wiener_like_rlddm, wiener_like_rlddm_2step , wiener_like_rlddm_bayesianQ #wiener_like_rlddm_2step_reg, wiener_like_rlddm_2step_reg_sliding_window # wiener_like_rlddm_2step,
 from collections import OrderedDict
 
 
