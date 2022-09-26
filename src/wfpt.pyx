@@ -48,12 +48,12 @@ class BayesianQ_Agent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
         self.action_size = action_size
-        self.memory_mf = deque(maxlen=20000)
-        self.memory_mb = deque(maxlen=20000)
+        # self.memory_mf = deque(maxlen=20000)
+        # self.memory_mb = deque(maxlen=20000)
         self.model = None
-        self.MIN_VAL = 99.1
-        self.MAX_VAL = 100.9
-        self.D = int(((self.MAX_VAL - self.MIN_VAL) * 10) * 3) + 1  # times 3 for the 3 possible current_position values
+        # self.MIN_VAL = 99.1
+        # self.MAX_VAL = 100.9
+        # self.D = int(((self.MAX_VAL - self.MIN_VAL) * 10) * 3) + 1  # times 3 for the 3 possible current_position values
 
         self.Qmb_mus_estimates_mu = np.zeros((self.action_size, self.state_size)) #np.zeros((3, self.D))
         self.Qmb_mus_estimates_sd = np.ones((self.action_size, self.state_size)) #np.ones((3, self.D))
@@ -66,6 +66,9 @@ class BayesianQ_Agent:
 
         self.Qmf_sds_estimates_mu = np.ones((self.action_size, comb(self.state_size,2,exact=True))) * -2. #np.ones((3, self.D)) * -2.
         self.Qmf_sds_estimates_sd = np.ones((self.action_size, comb(self.state_size,2,exact=True))) * 10. #np.ones((3, self.D)) * 10.
+
+    # def reset_memory(self):
+    #     self.memory = deque(maxlen=20000)
 
     def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
 
@@ -161,8 +164,8 @@ class BayesianQ_Agent:
         with pm.Model() as self.model:
 
             # state_mus = self.Qmus_estimates[:, state_idx]
-            Qmus = pm.Normal('Qmus', mu=self.Qmb_mus_estimates_mu, sd=self.Qmb_mus_estimates_sd, shape=[3, self.D])
-            Qsds = pm.Normal('Qsds', mu=self.Qmb_sds_estimates_mu, sd=self.Qmb_sds_estimates_sd, shape=[3, self.D])
+            Qmus = pm.Normal('Qmus', mu=self.Qmb_mus_estimates_mu, sd=self.Qmb_mus_estimates_sd, shape=[self.action_size, self.state_size])
+            Qsds = pm.Normal('Qsds', mu=self.Qmb_sds_estimates_mu, sd=self.Qmb_sds_estimates_sd, shape=[self.action_size, self.state_size])
 
             # idx0 = qvalues[:, 0].astype(int) action
             # idx1 = qvalues[:, 1].astype(int) state
@@ -191,7 +194,7 @@ class BayesianQ_Agent:
         self.Qmb_sds_estimates_mu = self.Qmb_sds_estimates
         self.Qmb_sds_estimates_sd = np.std(self.trace['Qsds'], axis=0)
 
-        self.reset_memory()
+        # self.reset_memory()
         # return
     def forget(self, gamma, state, action):
 
