@@ -33,7 +33,8 @@ from cython.parallel import *
 include 'integrate.pxi'
 
 # Added for Bayesian Q in 2022-08-04:
-import pymc as pm
+# import pymc as pm
+import pymc3 as pm
 from collections import deque
 import random
 
@@ -191,7 +192,7 @@ class BayesianQ_Agent:
         self.Qmb_sds_estimates_sd = np.std(self.trace['Qsds'], axis=0)
 
         self.reset_memory()
-        return
+        # return
     def forget(self, gamma, state, action):
 
         # qs_mb[s_, a_] *= (1 - gamma_)
@@ -1759,7 +1760,7 @@ def wiener_like_contaminant(np.ndarray[double, ndim=1] x, np.ndarray[int, ndim=1
     cdef int n_cont = np.sum(cont_x)
     cdef int pos_cont = 0
 
-    for i in prange(size, nogil=True):
+    for i in s(size, nogil=True):
         if cont_x[i] == 0:
             p = full_pdf(x[i], v, sv, a, z, sz, t, st, err,
                          n_st, n_sz, use_adaptive, simps_err)
