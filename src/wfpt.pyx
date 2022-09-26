@@ -1760,7 +1760,7 @@ def wiener_like_contaminant(np.ndarray[double, ndim=1] x, np.ndarray[int, ndim=1
     cdef int n_cont = np.sum(cont_x)
     cdef int pos_cont = 0
 
-    for i in s(size, nogil=True):
+    for i in prange(size, nogil=True):
         if cont_x[i] == 0:
             p = full_pdf(x[i], v, sv, a, z, sz, t, st, err,
                          n_st, n_sz, use_adaptive, simps_err)
