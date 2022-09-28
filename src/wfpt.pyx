@@ -70,7 +70,7 @@ class BayesianQ_Agent:
     # def reset_memory(self):
     #     self.memory = deque(maxlen=20000)
 
-    def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
+    def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]])):
 
         if self.model is None:
             return random.randrange(self.action_size)
@@ -111,7 +111,9 @@ class BayesianQ_Agent:
 
             return np.mean(gains * probs, axis=0)
 
-        if stage==1: # 1st stage -> get TM & 2nd-stage Q values
+        if stage==1: # 1st stage -> get TM & 2nd-stage Q values,
+            # important: two states (planets) as input, unlike stage 2!
+            # output is Qmb (next code is dtq = Qmb[1] - Qmb[0])
             planets = state
             # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
             planet1_mus = self.Qmb_mus_estimates[:,planets[0]]
@@ -128,18 +130,20 @@ class BayesianQ_Agent:
 
             return np.dot(Tm, [np.max(action_scores_1), np.max(action_scores_2)]) # Qmb
         elif stage==2: # 2nd stage -> directly pick between 2nd-stage Q values
+            # important: two states (planets) as input, unlike stage 2!
+            # output is action score (qs; next code is dtq = qs[0] - qs[1])
             state_idx = state
             state_mus = self.Qmb_mus_estimates[:, state_idx]
             state_sds = self.Qmb_sds_estimates[:, state_idx]
 
-            if use_explo:
-                VPI_per_action = calculate_VPI(state_mus, state_sds)
-                action_scores = VPI_per_action + state_mus
-                # idx_selected_action = np.argmax(action_scores)
+            # if use_explo:
+            VPI_per_action = calculate_VPI(state_mus, state_sds)
+            action_scores = VPI_per_action + state_mus
+            # idx_selected_action = np.argmax(action_scores)
 
-                return action_scores
-            else:
-                return np.argmax(state_mus)
+            return action_scores
+            # else:
+            #     return np.argmax(state_mus)
 
 
     def update(self,state,action,reward):
@@ -201,7 +205,8 @@ class BayesianQ_Agent:
         # qs_mb[s_, a_] *= (1 - gamma_)
         self.Qmb_mus_estimates_mu[action, state] *= (1-gamma)
     def uncertainty(self, state):
-        return self.Qmb_sds_estimates_mu[:,state]
+        # think of other ways to change this
+        return np.mean(self.Qmb_sds_estimates_mu[:,state])
 
 
 def pdf_array(np.ndarray[double, ndim=1] x, double v, double sv, double a, double z, double sz,
