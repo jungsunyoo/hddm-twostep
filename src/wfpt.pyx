@@ -70,7 +70,7 @@ class BayesianQ_Agent:
     # def reset_memory(self):
     #     self.memory = deque(maxlen=20000)
 
-    def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]])):
+    def act(self, stage, state, Tm = np.array([[0.7, 0.3], [0.3, 0.7]]), use_explo=True):
 
         if self.model is None:
             return random.randrange(self.action_size)
@@ -135,13 +135,21 @@ class BayesianQ_Agent:
             state_idx = state
             state_mus = self.Qmb_mus_estimates[:, state_idx]
             state_sds = self.Qmb_sds_estimates[:, state_idx]
+            if use_explo:
+                VPI_per_action = calculate_VPI(state_mus, state_sds)
+                action_scores = VPI_per_action + state_mus
+                # idx_selected_action = np.argmax(action_scores)
+
+                return action_scores
+            else:
+                return np.argmax(state_mus)
 
             # if use_explo:
-            VPI_per_action = calculate_VPI(state_mus, state_sds)
-            action_scores = VPI_per_action + state_mus
+            # VPI_per_action = calculate_VPI(state_mus, state_sds)
+            # action_scores = VPI_per_action + state_mus
             # idx_selected_action = np.argmax(action_scores)
 
-            return action_scores
+            # return action_scores
             # else:
             #     return np.argmax(state_mus)
 
