@@ -20,10 +20,12 @@ class Hrl(HDDM):
         self.non_centered = kwargs.pop("non_centered", False)
         self.dual = kwargs.pop("dual", False)
         self.alpha = kwargs.pop("alpha", True)
+        self.gamma = kwargs.pop("gamma", True)
         self.z = kwargs.pop("z", False)
         self.rl_class = RL_2step
         self.two_stage = kwargs.pop("two_stage", False) # whether to RLDDM just 1st stage or both stages
         self.sep_alpha = kwargs.pop("sep_alpha", False)  # use different learning rates for second stage
+        self.sep_gamma = kwargs.pop("sep_gamma", False)
         self.lambda_ = kwargs.pop("lambda_", False)  # added for two-step task
 
         self.choice_model = kwargs.pop("choice_model", True)
@@ -94,6 +96,18 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.gamma:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "gamma",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.two_stage:
                 if self.sep_alpha:
                     knodes.update(
@@ -107,17 +121,18 @@ class Hrl(HDDM):
                             std_value=0.1,
                         )
                     )
-                knodes.update(
-                    self._create_family_normal_non_centered(
-                        "gamma",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
+                if self.sep_gamma:
+                    knodes.update(
+                        self._create_family_normal_non_centered(
+                            "gamma2",
+                            value=0,
+                            g_mu=0.2,
+                            g_tau=3 ** -2,
+                            std_lower=1e-10,
+                            std_upper=10,
+                            std_value=0.1,
+                        )
                     )
-                )
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "w",
@@ -167,6 +182,18 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.gamma:
+                knodes.update(
+                    self._create_family_normal(
+                        "gamma",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.two_stage:
                 if self.sep_alpha:
                     knodes.update(
@@ -180,17 +207,18 @@ class Hrl(HDDM):
                             std_value=0.1,
                         )
                     )
-                knodes.update(
-                    self._create_family_normal(
-                        "gamma",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
+                if self.sep_gamma:
+                    knodes.update(
+                        self._create_family_normal(
+                            "gamma2",
+                            value=0,
+                            g_mu=0.2,
+                            g_tau=3 ** -2,
+                            std_lower=1e-10,
+                            std_upper=10,
+                            std_value=0.1,
+                        )
                     )
-                )
                 knodes.update(
                     self._create_family_normal(
                         "w",
@@ -234,13 +262,14 @@ class Hrl(HDDM):
         wfpt_parents = super(Hrl, self)._create_wfpt_parents_dict(knodes)
         wfpt_parents["v"] = knodes["v_bottom"]
         wfpt_parents["v_2"] = knodes["v_2_bottom"] if self.two_stage else 100.00
-        wfpt_parents["alpha"] = knodes["alpha_bottom"]
-        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.sep_alpha else 100.00
+        wfpt_parents["alpha"] = knodes["alpha_bottom"] if self.alpha else 100.00
+        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.sep_alpha and self.two_stage else 100.00
+        wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.sep_gamma and self.two_stage else 100.00
         wfpt_parents["pos_alpha"] = knodes["pos_alpha_bottom"] if self.dual else 100.00
         wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
         wfpt_parents["z_2"] = knodes["z_2_bottom"] if "z_2" in self.include else 0.5
 
-        wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.two_stage else 100.00
+        wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.gamma else 100.00
         wfpt_parents["w"] = knodes["w_bottom"] if self.two_stage else 100.00
         wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.0
 
@@ -387,7 +416,7 @@ def RL_like(x, v, alpha, pos_alpha, z=0.5, p_outlier=0):
 #     )
 
 
-def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, lambda_, w, window_start, window_size, z=0.5, z_2 = 0.5, p_outlier=0):
+def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, gamma2, lambda_, w, window_start, window_size, z=0.5, z_2 = 0.5, p_outlier=0):
 
     # wiener_params = {
     #     "err": 1e-4,
@@ -453,6 +482,7 @@ def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, lambda_
         alpha,
         pos_alpha,
         gamma, # added for two-step task
+        gamma2,
         lambda_, # added for two-step task
         v, # don't use second stage for now
         z,

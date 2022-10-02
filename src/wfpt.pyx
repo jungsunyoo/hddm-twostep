@@ -402,7 +402,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double q, double alpha, double pos_alpha,
 
                       # double w,
-                      double gamma,
+                      double gamma, double gamma2,
                       double lambda_,
 
                       double v0, double v1, double v2,
@@ -454,6 +454,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double alfa2
 
     cdef double gamma_
+    cdef double gamma__
     cdef double lambda__
 
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
@@ -534,6 +535,12 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
         gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+
+        if gamma2 != 100.00:
+            gamma__ = (2.718281828459**gamma2) / (1 + 2.718281828459**gamma2)
+        else:
+            gamma__ = gamma_
+
         if alpha2 != 100.00:
             alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
         else:
@@ -666,7 +673,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                 for a_ in range(2):
                     if (s_ is not s2s[i]) or (a_ is not responses2[i]):
                         # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                        qs_mb[s_,a_] *= (1-gamma_)
+                        qs_mb[s_,a_] *= (1-gamma__)
 
             for s_ in range(comb(nstates,2,exact=True)):
                 for a_ in range(2):
@@ -689,7 +696,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       np.ndarray[long, ndim=1] split_by,
                       double q, double alpha, double pos_alpha,
 
-                      double gamma,
+                      double gamma, double gamma2,
                       double lambda_,
 
                       double v, # don't use second stage
@@ -727,6 +734,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double alfa2
 
     cdef double gamma_
+    cdef double gamma__
     cdef double lambda__
 
     cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
@@ -802,6 +810,10 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
         gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+        if gamma2 != 100.00:
+            gamma__ = (2.718281828459**gamma2) / (1 + 2.718281828459**gamma2)
+        else:
+            gamma__ = gamma_
         if alpha2 != 100.00:
             alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
         else:
@@ -882,7 +894,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     for a_ in range(2):
                         if (s_ is not s2s[i]) or (a_ is not responses2[i]):
                             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                            qs_mb[s_,a_] *= (1-gamma_)
+                            qs_mb[s_,a_] *= (1-gamma__)
 
                 for s_ in range(comb(nstates,2,exact=True)):
                     for a_ in range(2):
@@ -908,7 +920,7 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double q, double alpha, double pos_alpha,
 
                       # double w,
-                      double gamma,
+                      double gamma, double gamma2,
                       double lambda_,
 
                       double v0, double v1, double v2,
@@ -957,6 +969,7 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double alfa2
 
     cdef double gamma_
+    cdef double gamma__
     cdef double lambda__
 
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
@@ -1055,6 +1068,10 @@ def wiener_like_rlddm_bayesianQ(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
         gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+        if gamma2 != 100.00:
+            gamma__ = (2.718281828459**gamma2) / (1 + 2.718281828459**gamma2)
+        else:
+            gamma__ = gamma_
         if alpha2 != 100.00:
             alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
         else:
@@ -1225,7 +1242,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double q, double alpha, double pos_alpha,
 
                       # double w,
-                      double gamma,
+                      double gamma, double gamma2,
                       double lambda_,
 
                       double v0, double v1, double v2,
@@ -1277,6 +1294,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double alfa2
 
     cdef double gamma_
+    cdef double gamma__
     cdef double lambda__
 
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
@@ -1362,6 +1380,10 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
         gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+        if gamma2 != 100.00:
+            gamma__ = (2.718281828459**gamma2) / (1 + 2.718281828459**gamma2)
+        else:
+            gamma__ = gamma_
         if alpha2 != 100.00:
             alfa2 = (2.718281828459**alpha2) / (1 + 2.718281828459**alpha2)
         else:
@@ -1523,7 +1545,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                 for a_ in range(2):
                     if (s_ is not s2s[i]) or (a_ is not responses2[i]):
                         # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                        qs_mb[s_,a_] *= (1-gamma_)
+                        qs_mb[s_,a_] *= (1-gamma__)
 
             for s_ in range(comb(nstates,2,exact=True)):
                 for a_ in range(2):
