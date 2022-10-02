@@ -1327,6 +1327,10 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double a_2_
     cdef double t_2_
 
+    cdef double var1
+    cdef double var2
+    cdef double entropy1
+    cdef double entropy2
 
     cdef np.ndarray[double, ndim=1] x1s
     cdef np.ndarray[double, ndim=1] x2s
@@ -1447,31 +1451,31 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         dtq = qs[1] - qs[0]
                         z_ = dtq * z_scaler
                         sig = 1 / (1 + np.exp(-z_))
-                def sigmoid(x):
-                    return np.exp(x) / (1 + np.exp(x))
+
                     rt = x1s[i]
 
                     # Modeling ndt
 
                     # 1. Transition uncertainty (common/rare)
-                    # variance for beta distribution of upper boundary
-                    mean2, var2, skew2, kurt2 = beta.stats(alphaf(beta_success[planets[1]]),
-                                                       betaf(beta_n[planets[1]], beta_success[planets[1]]),
-                                                       moments='mvsk')
                     # variance for beta distribution of lower boundary
-                    mean1, var1, skew1, kurt1 = beta.stats(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]), moments='mvsk')
+                    _, var1, _, _ = beta.stats(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]), moments='mvsk')
+                    # variance for beta distribution of upper boundary
+                    _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
+                                               betaf(beta_n[planets[1]], beta_success[planets[1]]),
+                                               moments='mvsk')
 
                     # 2. Subjective entropy
                     # softmax -> entropy of 2nd stage of planet 1
                     # or, actually, SIGMOID because two probabilities are independent from each other?
-                    # two values in planet1 stage 2:
+                    # entropy of two options in lower_boundary_planet stage 2:
                     entropy1 = scientropy(qs_mb[planets[0], 0], qs_mb[planets[0],1])
-                    # two values in planet2 stage 2:
+                    # entropy of two options in upper_boundary_planet stage 2:
                     entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
 
-                    # 3. add encounterances (ind, set)? -> not sure,, but might be captured by 1 (transition uncertainty?)
+                    # 3. add encounterances (set) : beta_ndt3
 
-                    t_ = beta_ndt * (var2+var1) + beta_ndt2 * (entropy1 + entropy2) + t
+                    # sum together
+                    t_ = beta_ndt * (var2+var1) + beta_ndt2 * (entropy1 + entropy2) + beta_ndt3*np.log(ndt_counter_set[s1s[i],0]) + t
 
                     # t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + \
                     #      np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + \
@@ -1488,7 +1492,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # # # 2nd stage
                     if two_stage == 1.00:
-
+                        # Updating encountraces
+                        ndt_counter_set[s1s[i], 0] += 1
+                        ndt_counter_ind[s2s[i], 0] += 1
 
                         # Updating common/rare transition uncertainty (beta parameters)
                         chosen_state = planets[responses1[i]]
@@ -1526,8 +1532,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
             # update Q values, regardless of pdf
 
-            ndt_counter_set[s1s[i],0] += 1
-            ndt_counter_ind[s2s[i],0] += 1
+
 
             # just update 1st-stage MF values if estimating
             dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
