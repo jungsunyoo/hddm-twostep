@@ -42,7 +42,7 @@ import random
 # Added for uncertainty modulation in 2022-10-01:
 
 from scipy.stats import entropy as scientropy
-from scipy.stats import beta
+# from scipy.stats import beta
 
 np.warnings.filterwarnings('ignore', '(overflow|invalid)')
 
@@ -54,7 +54,8 @@ def alphaf(k):
     return k+1
 def betaf(n,k):
     return n-k+1
-
+def var_beta(a,b):
+    return (a*b) / (((a+b)**2)*(a+b+1))
 # class BayesianQ_Agent:
 #
 #     def __init__(self, state_size, action_size):
@@ -1458,11 +1459,14 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # 1. Transition uncertainty (common/rare)
                     # variance for beta distribution of lower boundary
-                    _, var1, _, _ = beta.stats(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]), moments='mvsk')
-                    # variance for beta distribution of upper boundary
-                    _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
-                                               betaf(beta_n[planets[1]], beta_success[planets[1]]),
-                                               moments='mvsk')
+                    # _, var1, _, _ = beta.stats(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]), moments='mvsk')
+                    # # variance for beta distribution of upper boundary
+                    # _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
+                    #                            betaf(beta_n[planets[1]], beta_success[planets[1]]),
+                    #                            moments='mvsk')
+
+                    var1 = var_beta(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]))
+                    var2 = var_beta(alphaf(beta_success[planets[1]]), betaf(beta_n[planets[1]], beta_success[planets[1]]))
 
                     # 2. Subjective entropy
                     # softmax -> entropy of 2nd stage of planet 1
