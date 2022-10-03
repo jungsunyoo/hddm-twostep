@@ -50,11 +50,11 @@ np.random.seed(seed=1234)
 
 
 # JY added in 2022-10-01 for uncertainty modulation
-def alphaf(k):
-    return k+1
-def betaf(n,k):
-    return n-k+1
-def var_beta(a,b):
+# def alphaf(int k):
+#     return k+1
+# def betaf(int n, int k):
+#     return n-k+1
+def var_beta(double a,double b):
     return (a*b) / (((a+b)**2)*(a+b+1))
 # class BayesianQ_Agent:
 #
@@ -1464,9 +1464,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
                     #                            betaf(beta_n[planets[1]], beta_success[planets[1]]),
                     #                            moments='mvsk')
-
-                    var1 = var_beta(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]))
-                    var2 = var_beta(alphaf(beta_success[planets[1]]), betaf(beta_n[planets[1]], beta_success[planets[1]]))
+                # def alphaf(int k):
+                    #     return k+1
+                    # def betaf(int n, int k):
+                    #     return n-k+1
+                    var1 = var_beta(beta_success[planets[0]] + 1, beta_n[planets[0]] - beta_success[planets[0]] + 1)
+                    var2 = var_beta(beta_success[planets[1]] + 1, beta_n[planets[1]] - beta_success[planets[1]] + 1)
 
                     # 2. Subjective entropy
                     # softmax -> entropy of 2nd stage of planet 1
