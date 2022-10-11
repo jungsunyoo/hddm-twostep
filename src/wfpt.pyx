@@ -1507,8 +1507,8 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # entropy of two options in upper_boundary_planet stage 2:
                     # entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
                     #
-                    entropy1 = entropyf([qs_mb[planets[0], 0], qs_mb[planets[0],1]])
-                    entropy2 = entropyf([qs_mb[planets[1], 0], qs_mb[planets[1],1]])
+                    entropy1 = entropyf(np.array([qs_mb[planets[0], 0], qs_mb[planets[0],1]]))
+                    entropy2 = entropyf(np.array([qs_mb[planets[1], 0], qs_mb[planets[1],1]]))
 
                     # 3. add encounterances (set) : beta_ndt3
 
