@@ -1499,15 +1499,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # # # 2nd stage
                     if two_stage == 1.00:
-                        # Updating encountraces
-                        ndt_counter_set[s1s[i], 0] += 1
-                        ndt_counter_ind[s2s[i], 0] += 1
 
-                        # Updating common/rare transition uncertainty (beta parameters)
-                        chosen_state = planets[responses1[i]]
-                        beta_n[chosen_state] += 1
-                        if chosen_state == s2s[i]:
-                            beta_success[chosen_state] += 1
 
                         v_2_ = v if v_2==100.00 else v_2
                         a_2_ = a if a_2 == 100.00 else a_2
@@ -1536,11 +1528,20 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             return -np.inf
                         sum_logp += log(p)
 
+            # Updating ndt-related variables, regardless of pdf
+            # Updating encountraces
+            ndt_counter_set[s1s[i], 0] += 1
+            ndt_counter_ind[s2s[i], 0] += 1
+
+            # Updating common/rare transition uncertainty (beta parameters)
+            planets = state_combinations[s1s[i]]
+            chosen_state = planets[responses1[i]]
+            beta_n[chosen_state] += 1
+            if chosen_state == s2s[i]:
+                beta_success[chosen_state] += 1
+
 
             # update Q values, regardless of pdf
-
-
-
             # just update 1st-stage MF values if estimating
             dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
             qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
