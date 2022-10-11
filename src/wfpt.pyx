@@ -41,7 +41,7 @@ import random
 
 # Added for uncertainty modulation in 2022-10-01:
 
-from scipy.stats import entropy as scientropy
+# from scipy.stats import entropy as scientropy
 # from scipy.stats import beta
 
 np.warnings.filterwarnings('ignore', '(overflow|invalid)')
@@ -56,6 +56,34 @@ np.random.seed(seed=1234)
 #     return n-k+1
 def var_beta(double a,double b):
     return (a*b) / (((a+b)**2)*(a+b+1))
+
+def softmax_stable(np.ndarray[double, ndim=1] x):
+    return(np.exp(x - np.max(x)) / np.exp(x - np.max(x)).sum())
+
+# def entr(double x, out=None):
+#     cdef double x_
+#     if x>0:
+#         x_ = -x*np.log(x)
+#     elif x==0:
+#         x_ = 0
+#     else:
+#         x_ = -np.inf
+#     return x_
+
+def entropyf(np.ndarray[double, ndim=1] pk, double base=2, int axis=0):
+    if np.sum(pk, axis=axis) != 1.0:
+        pk = softmax_stable(pk)
+    return -np.sum(pk * np.log(pk)) / np.log(base)
+    # cdef double vec
+    # cdef double S
+    # pk = np.asarray(pk)
+    # pk = 1.0*pk / np.sum(pk, axis=axis, keepdims=True)
+    # vec = entr(pk)
+    # S = np.sum(vec, axis=axis)
+    # if base is not None:
+    #     S /= np.log(base)
+    # return S
+
 # class BayesianQ_Agent:
 #
 #     def __init__(self, state_size, action_size):
@@ -1475,9 +1503,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # softmax -> entropy of 2nd stage of planet 1
                     # or, actually, SIGMOID because two probabilities are independent from each other?
                     # entropy of two options in lower_boundary_planet stage 2:
-                    entropy1 = scientropy(qs_mb[planets[0], 0], qs_mb[planets[0],1])
+                    # entropy1 = scientropy(qs_mb[planets[0], 0], qs_mb[planets[0],1])
                     # entropy of two options in upper_boundary_planet stage 2:
-                    entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
+                    # entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
+                    #
+                    entropy1 = entropyf([qs_mb[planets[0], 0], qs_mb[planets[0],1]])
+                    entropy2 = entropyf([qs_mb[planets[1], 0], qs_mb[planets[1],1]])
 
                     # 3. add encounterances (set) : beta_ndt3
 
