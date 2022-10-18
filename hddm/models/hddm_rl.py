@@ -166,7 +166,18 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-
+            if self.regress_ndt4:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "beta_ndt4",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             # if (not self.z_reg) and (not self.z_sep_q):
             if not self.z_reg:
                 if self.w2:
@@ -455,7 +466,18 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-
+            if self.regress_ndt4:
+                knodes.update(
+                    self._create_family_normal(
+                        "beta_ndt4",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.dual:
                 knodes.update(
                     self._create_family_normal(
