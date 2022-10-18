@@ -1427,7 +1427,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] Tm
     cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
 
-    cdef double transition_priors = np.ones((comb(nstates,2,exact=True),1)) * 0.5
+    # cdef double transition_priors = np.ones((comb(nstates,2,exact=True),1)) * 0.5
 
 
 
@@ -1505,7 +1505,21 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     planets = state_combinations[s1s[i]]
 
                     # Transition matrix
-                    Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
+                    # Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
+                    if model_unc_rep == 1: # if ind
+                        Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
+                                       [mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+                    elif model_unc_rep == -1: # if set
+                        Tm = np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
+                                       [1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+
+
+
+
                     mode1_1 = mode_beta(alphaf(qs_mb_success[planets[0],0]),
                                         betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
                     mode1_2 = mode_beta(alphaf(qs_mb_success[planets[0],1]),
