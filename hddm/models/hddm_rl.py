@@ -19,13 +19,19 @@ class HDDMrl(HDDM):
     def __init__(self, *args, **kwargs):
         self.non_centered = kwargs.pop("non_centered", False)
         self.dual = kwargs.pop("dual", False)
-        self.alpha = kwargs.pop("alpha", True)
-        self.gamma = kwargs.pop("gamma", True) # added for two-step task
+        self.alpha = kwargs.pop("alpha", False)
+        self.gamma = kwargs.pop("gamma", False) # added for two-step task
 
         self.lambda_ = kwargs.pop("lambda_", False) # added for two-step task
         self.v_reg = kwargs.pop("v_reg", False) # added for regression in two-step task
         self.z_reg = kwargs.pop("z_reg", False)
         self.a_fix = kwargs.pop("a_fix", False)
+
+        self.w = kwargs.pop("w", False)
+        self.w2 = kwargs.pop("w2", False)
+
+        self.z_scaler = kwargs.pop("z_scaler", False)
+        self.z_scaler_2 = kwargs.pop("z_scaler_2", False)
 
         self.two_stage = kwargs.pop("two_stage", False) # whether to RLDDM just 1st stage or both stages
         self.sep_alpha = kwargs.pop("sep_alpha", False) # use different learning rates for second stage
@@ -69,6 +75,10 @@ class HDDMrl(HDDM):
         self.regress_ndt = kwargs.pop("regress_ndt", False)
         self.regress_ndt2 = kwargs.pop("regress_ndt2", False)
         self.regress_ndt3 = kwargs.pop("regress_ndt3", False)
+        self.regress_ndt4 = kwargs.pop("regress_ndt4", False)
+
+        self.model_unc_rep = kwargs.pop("model_unc_rep") # uncertainty of model : set or ind?
+        self.mem_unc_rep = kwargs.pop("mem_unc_rep") # uncertainty of memory: set or ind?
 
         self.choice_model = False # just a placeholder for compatibility
 
@@ -107,7 +117,8 @@ class HDDMrl(HDDM):
                 )
 
             # if (not self.v_reg) and (not self.v_sep_q):
-            if not self.v_reg:
+            # if not self.v_reg:
+            if self.w:
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "w",
@@ -158,28 +169,30 @@ class HDDMrl(HDDM):
 
             # if (not self.z_reg) and (not self.z_sep_q):
             if not self.z_reg:
-                knodes.update(
-                    self._create_family_normal_non_centered(
-                        "w2",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
+                if self.w2:
+                    knodes.update(
+                        self._create_family_normal_non_centered(
+                            "w2",
+                            value=0,
+                            g_mu=0.2,
+                            g_tau=3 ** -2,
+                            std_lower=1e-10,
+                            std_upper=10,
+                            std_value=0.1,
+                        )
                     )
-                )
-                knodes.update(
-                    self._create_family_normal_non_centered(
-                        "z_scaler",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
+                if self.z_scaler:
+                    knodes.update(
+                        self._create_family_normal_non_centered(
+                            "z_scaler",
+                            value=0,
+                            g_mu=0.2,
+                            g_tau=3 ** -2,
+                            std_lower=1e-10,
+                            std_upper=10,
+                            std_value=0.1,
+                        )
                     )
-                )
             if self.dual:
                 knodes.update(
                     self._create_family_normal_non_centered(
@@ -332,6 +345,19 @@ class HDDMrl(HDDM):
                             "z_sigma2", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
 
                     )
+            if self.two_stage and self.z_scaler_2:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "z_scaler_2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
+
 
 
         else: # if not non-centered (default)
@@ -360,7 +386,8 @@ class HDDMrl(HDDM):
                     )
                 )
             # if (not self.v_reg) and (not self.v_sep_q):
-            if not self.v_reg:
+            # if not self.v_reg:
+            if self.w:
                 knodes.update(
                     self._create_family_normal(
                         "w",
@@ -374,23 +401,24 @@ class HDDMrl(HDDM):
                 )
             # if (not self.z_reg) and (not self.z_sep_q):
             if not self.z_reg:
-                knodes.update(
-                    self._create_family_normal(
-                        "w2",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
+                if self.w2:
+                    knodes.update(
+                        self._create_family_normal(
+                            "w2",
+                            value=0,
+                            g_mu=0.2,
+                            g_tau=3 ** -2,
+                            std_lower=1e-10,
+                            std_upper=10,
+                            std_value=0.1,
+                        )
                     )
-                )
-
-                knodes.update(
-                    self._create_family_normal_normal_hnormal(
-                        "z_scaler", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
+                if self.z_scaler:
+                    knodes.update(
+                        self._create_family_normal_normal_hnormal(
+                            "z_scaler", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
+                        )
                     )
-                )
             if self.regress_ndt:
                 knodes.update(
                     self._create_family_normal(
@@ -553,36 +581,52 @@ class HDDMrl(HDDM):
                             "z_sigma2", value=0, g_tau=50 ** -2, std_std=10  # uninformative prior
                         )
                     )
+            if self.two_stage and self.z_scaler_2:
+                knodes.update(
+                    self._create_family_normal_normal_hnormal(
+                        "z_scaler_2", value=2, g_mu=2, g_tau=3 ** -2, std_std=2
+                    )
+                )
 
         return knodes
 
     def _create_wfpt_parents_dict(self, knodes):
         wfpt_parents = OrderedDict()
         wfpt_parents = super(HDDMrl, self)._create_wfpt_parents_dict(knodes)
-        wfpt_parents["alpha"] = knodes["alpha_bottom"]
+        wfpt_parents["alpha"] = knodes["alpha_bottom"] if self.alpha else 100.00
         wfpt_parents["pos_alpha"] = knodes["pos_alpha_bottom"] if self.dual else 100.00
 
         wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.two_stage and self.sep_alpha else 100.00
         wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.two_stage and self.sep_gamma else 100.00
         # if not self.v_reg) and (not self.v_sep_q):
         if not self.v_reg:
-            wfpt_parents["w"] = knodes["w_bottom"]
+            if self.w:
+                wfpt_parents["w"] = knodes["w_bottom"]
+            else:
+                wfpt_parents["w"] = 100.00
         else:
             wfpt_parents["w"] = 100.00
         # if (not self.z_reg) and (not self.z_sep_q):
         if not self.z_reg:
-            wfpt_parents["w2"] = knodes["w2_bottom"]
-            wfpt_parents["z_scaler"] = knodes["z_scaler_bottom"]
+            if self.w2:
+                wfpt_parents["w2"] = knodes["w2_bottom"]
+            else:
+                wfpt_parents["w2"] = 100.00
+            if self.z_scaler:
+                wfpt_parents["z_scaler"] = knodes["z_scaler_bottom"]
+            else:
+                wfpt_parents["z_scaler"] = 100.00
         else:
             wfpt_parents["w2"] = 100.00
             wfpt_parents["z_scaler"] = 100.00
-        wfpt_parents["gamma"] = knodes["gamma_bottom"]
+        wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.gamma else 100.00
         wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.00
 
 
         wfpt_parents["beta_ndt"] = knodes["beta_ndt_bottom"] if self.regress_ndt else 0.00
         wfpt_parents["beta_ndt2"] = knodes["beta_ndt2_bottom"] if self.regress_ndt2 else 0.00
         wfpt_parents["beta_ndt3"] = knodes["beta_ndt3_bottom"] if self.regress_ndt3 else 0.00
+        wfpt_parents["beta_ndt4"] = knodes["beta_ndt4_bottom"] if self.regress_ndt4 else 0.00
 
         if self.v_reg: # if using v_regression 
             wfpt_parents['v'] = 100.00
@@ -633,6 +677,7 @@ class HDDMrl(HDDM):
             #     wfpt_parents['z_2'] = 100.00
             if self.t_share:
                 wfpt_parents['t_2'] = 100.00
+
         else:
             wfpt_parents['two_stage'] = 0.00
             # since only first-stage is modeled, none of v_2,a_2,t_2,z_2 is used
@@ -648,7 +693,29 @@ class HDDMrl(HDDM):
             wfpt_parents['window_start'] = self.window_start
             wfpt_parents['window_size'] = self.window_size
 
+        # form of representation - set or ind
+        if self.mem_unc_rep == 'ind':
+            wfpt_parents['mem_unc_rep'] = 1.00
+        elif self.mem_unc_rep == 'set':
+            wfpt_parents['mem_unc_rep'] = -1.00
+        else:
+            wfpt_parents['mem_unc_rep'] = 0.00
+
+        if self.model_unc_rep == 'ind':
+            wfpt_parents['model_unc_rep'] = 1.00
+        elif self.model_unc_rep == 'set':
+            wfpt_parents['model_unc_rep'] = -1.00
+        else:
+            wfpt_parents['model_unc_rep'] = 0.00
+
         # wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
+        if self.two_stage:
+            if self.z_scaler_2:
+                wfpt_parents['z_scaler_2'] = knodes['z_scaler_2_bottom']
+            else:
+                wfpt_parents['z_scaler_2'] = 0.00
+        else:
+            wfpt_parents['z_scaler_2'] = 0.00
 
         return wfpt_parents
 
@@ -888,7 +955,8 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
 #         **wp
 #     )
 def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, gamma2, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
-                                           two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, p_outlier=0): # regression ver2: bounded, a fixed to 1
+                                           two_stage, w, w2,z_scaler, z_scaler_2, z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, beta_ndt4,
+                              model_unc_rep, mem_unc_rep, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -970,6 +1038,7 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         w,
         w2,
         z_scaler,
+        z_scaler_2,
         z_sigma,
         z_sigma2,
         # st,
@@ -978,6 +1047,9 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         beta_ndt,
         beta_ndt2,
         beta_ndt3,
+        beta_ndt4,
+        model_unc_rep,
+        mem_unc_rep,
         p_outlier=p_outlier,
         **wp
     )

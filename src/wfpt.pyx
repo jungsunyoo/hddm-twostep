@@ -50,12 +50,21 @@ np.random.seed(seed=1234)
 
 
 # JY added in 2022-10-01 for uncertainty modulation
-# def alphaf(int k):
-#     return k+1
-# def betaf(int n, int k):
-#     return n-k+1
+
+def alphaf(int k):
+    return k+1
+
+def betaf(int n, int k):
+    return n-k+1
+
 def var_beta(double a,double b):
     return (a*b) / (((a+b)**2)*(a+b+1))
+
+def exp_beta(double a, double b):
+    return a / (a+b)
+
+def mode_beta(double a, double b): # when a, b > 1
+    return (a-1) / (a + b -2)
 
 def softmax_stable(np.ndarray[double, ndim=1] x):
     return(np.exp(x - np.max(x)) / np.exp(x - np.max(x)).sum())
@@ -83,7 +92,14 @@ def entropyf(np.ndarray[double, ndim=1] pk, double base=2, int axis=0):
     # if base is not None:
     #     S /= np.log(base)
     # return S
+def search(np.ndarray[double, ndim=1] arr, double x):
+    cdef int i
+    for i in range(len(arr)):
 
+        if arr[i] == x:
+            return i
+
+    return -1
 # class BayesianQ_Agent:
 #
 #     def __init__(self, state_size, action_size):
@@ -1292,10 +1308,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double t_2,
                       double v_2,
                       double alpha2,
-                      double w, double w2, double z_scaler,
+                      double w, double w2, double z_scaler, double z_scaler_2,
                       double z_sigma, double z_sigma2,
                       double window_start, double window_size,
-                      double beta_ndt, double beta_ndt2, double beta_ndt3,
+                      double beta_ndt, double beta_ndt2, double beta_ndt3, double beta_ndt4,
+                      double model_unc_rep, double mem_unc_rep,
 
 
                       # double st,
@@ -1327,17 +1344,32 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double lambda__
 
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
-    cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-    cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
 
-    cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
-    cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
+
+    # cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+    # cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+
+
+    # cdef np.ndarray[double, ndim=2] qs_mf_success = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+    # cdef np.ndarray[double, ndim=2] qs_mf_n = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+
+    cdef np.ndarray[double, ndim=2] qs_mb_success = np.zeros((nstates, 2)) # second-stage Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb_n = np.zeros((nstates, 2)) # second-stage Q-values
+
+    cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1))
+
+    cdef np.ndarray[double, ndim=2] memory_weight_tr_set = np.zeros((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] memory_weight_tr_ind = np.zeros((nstates, 1))
+
+    cdef np.ndarray[double, ndim=2] memory_weight_val = np.zeros((nstates, 2))
 
     # JY added for uncertainty modeling
-    cdef np.ndarray[double, ndim=2] beta_n = np.zeros((nstates, 1))
-    cdef np.ndarray[double, ndim=2] beta_success = np.zeros((nstates,1))
+    cdef np.ndarray[double, ndim=2] beta_n_set = np.zeros((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] beta_success_set = np.zeros((comb(nstates,2,exact=True),1))
 
-
+    cdef np.ndarray[double, ndim=2] beta_n_ind = np.zeros((nstates, 1))
+    cdef np.ndarray[double, ndim=2] beta_success_ind = np.zeros((nstates,1))
 
     cdef double dtQ1
     cdef double dtQ2
@@ -1360,6 +1392,17 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double var2
     cdef double entropy1
     cdef double entropy2
+    cdef double memory_weight_tr
+    cdef double total_memory_weight_val
+    cdef double alpha_b
+    cdef double beta_b
+
+    cdef double mode1_1
+    cdef double mode1_2
+    cdef double mode2_1
+    cdef double mode2_2
+    cdef double mode1
+    cdef double mode2
 
     cdef np.ndarray[double, ndim=1] x1s
     cdef np.ndarray[double, ndim=1] x2s
@@ -1380,8 +1423,13 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=1] Qmb
     cdef double dtq
     cdef double rt
-    cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
+    # cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
+    cdef np.ndarray[double, ndim=2] Tm
     cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
+
+    cdef double transition_priors = np.ones((comb(nstates,2,exact=True),1)) * 0.5
+
+
 
     if not p_outlier_in_range(p_outlier):
         return -np.inf
@@ -1404,11 +1452,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         s2s = s2[split_by == s]
 
         s_size = x1s.shape[0]
-        qs_mf[:,0] = q
-        qs_mf[:,1] = q
-
-        qs_mb[:,0] = q
-        qs_mb[:,1] = q
+        # qs_mf[:,0] = q
+        # qs_mf[:,1] = q
+        #
+        # qs_mb[:,0] = q
+        # qs_mb[:,1] = q
 
 
         alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
@@ -1455,65 +1503,137 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # 1st stage
                     planets = state_combinations[s1s[i]]
-                    Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
+
+                    # Transition matrix
+                    Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
+                    mode1_1 = mode_beta(alphaf(qs_mb_success[planets[0],0]),
+                                        betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
+                    mode1_2 = mode_beta(alphaf(qs_mb_success[planets[0],1]),
+                                        betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
+                    mode2_1 = mode_beta(alphaf(qs_mb_success[planets[1], 0]),
+                                        betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
+                    mode2_2 = mode_beta(alphaf(qs_mb_success[planets[1], 1]),
+                                        betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
+
+                    Qmb = np.dot(Tm, [np.max([mode1_1, mode1_2]), np.max([mode2_1, mode2_2])])
+                    # cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
+
+                    # planet 1 mode
+
+
+                    # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
                     # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
 
                     # dtq = qs[1] - qs[0]
                     dtq_mb = Qmb[1] - Qmb[0] # 1 is upper, 0 is lower
-                    dtq_mf = qs_mf[s1s[i],1] - qs_mf[s1s[i],0]
-                    if v == 100.00: # if v_reg
-                        v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+                    # dtq_mf = qs_mf[s1s[i],1] - qs_mf[s1s[i],0]
+                    # if v == 100.00: # if v_reg
+                    #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
 
-                    else: # if don't use v_reg:
+                    # else: # if don't use v_reg:
                         # if v_qval == 0: # use both qmb and qmf
-                        qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-                        dtq = qs[1] - qs[0]
-                        v_ = dtq * v
+                        # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+                        # dtq = qs[1] - qs[0]
+                    v_ = dtq_mb * v
 
                     # if z == 0.5: # if use z_reg:
-                    if w2 == 100.00: # if use z_reg
+                    # if w2 == 100.00: # if use z_reg
                         # Transform regression parameters so that >0
-                        z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
-                        sig = 1/(1+np.exp(-z_))
-                    else: # if don't use z_reg:
-                        qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
-                        dtq = qs[1] - qs[0]
-                        z_ = dtq * z_scaler
-                        sig = 1 / (1 + np.exp(-z_))
+                        # z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+                        # sig = 1/(1+np.exp(-z_))
+                    # else: # if don't use z_reg:
+                    #     qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
+                    #     dtq = qs[1] - qs[0]
+                    #     z_ = dtq * z_scaler
+                    #     sig = 1 / (1 + np.exp(-z_))
+                    z_ = dtq * z_scaler
 
                     rt = x1s[i]
 
                     # Modeling ndt
-
-                    # 1. Transition uncertainty (common/rare)
+                    # 1. Model uncertainty of the transition matrix
+                    # 1) Transition uncertainty (common/rare)
                     # variance for beta distribution of lower boundary
                     # _, var1, _, _ = beta.stats(alphaf(beta_success[planets[0]]), betaf(beta_n[planets[0]], beta_success[planets[0]]), moments='mvsk')
                     # # variance for beta distribution of upper boundary
                     # _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
                     #                            betaf(beta_n[planets[1]], beta_success[planets[1]]),
                     #                            moments='mvsk')
-                # def alphaf(int k):
-                    #     return k+1
-                    # def betaf(int n, int k):
-                    #     return n-k+1
-                    var1 = var_beta(beta_success[planets[0]] + 1, beta_n[planets[0]] - beta_success[planets[0]] + 1)
-                    var2 = var_beta(beta_success[planets[1]] + 1, beta_n[planets[1]] - beta_success[planets[1]] + 1)
+
+                    if model_unc_rep == 1: # ind
+
+                        # 1. Get variance of beta (transition)
+                        alpha_b = alphaf(beta_success_ind[planets[0]])
+                        beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+                        var1_tr = var_beta(alpha_b, beta_b)
+
+                        alpha_b = alphaf(beta_success_ind[planets[1]])
+                        beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+                        var2_tr = var_beta(alpha_b, beta_b)
+
+                        # 2. Get variance of beta (value)
+                        # alpha_b = alphaf()
+
+                    elif model_unc_rep == -1: # set
+
+                        # 1. Get variance of beta (transition)
+                        alpha_b = alphaf(beta_success_set[s1s[i]])
+                        beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+                        var1_tr = var_beta(alpha_b, beta_b)
+                        var2_tr = 0
 
                     # 2. Subjective entropy
                     # softmax -> entropy of 2nd stage of planet 1
                     # or, actually, SIGMOID because two probabilities are independent from each other?
                     # entropy of two options in lower_boundary_planet stage 2:
-                    entropy1 = scientropy(qs_mb[planets[0], 0], qs_mb[planets[0],1])
+                    # entropy1 = scientropy(qs_mb[planets[0], 0], qs_mb[planets[0],1])
                     # entropy of two options in upper_boundary_planet stage 2:
-                    entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
+                    # entropy2 = scientropy(qs_mb[planets[1], 0], qs_mb[planets[1],1])
                     #
                     # entropy1 = entropyf(np.array([qs_mb[planets[0], 0], qs_mb[planets[0],1]]))
                     # entropy2 = entropyf(np.array([qs_mb[planets[1], 0], qs_mb[planets[1],1]]))
 
-                    # 3. add encounterances (set) : beta_ndt3
+                    # 2. Model uncertainty of the 2nd-stage value
+                    var1_1 = var_beta(alphaf(qs_mb_success[planets[0],0]),
+                                        betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
+                    var1_2 = var_beta(alphaf(qs_mb_success[planets[0],1]),
+                                        betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
+                    var2_1 = var_beta(alphaf(qs_mb_success[planets[1], 0]),
+                                        betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
+                    var2_2 = var_beta(alphaf(qs_mb_success[planets[1], 1]),
+                                        betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
+
+
+
+                    # 3. Memory (representational) uncertainty of the transition: beta_ndt3
+
+                    if mem_unc_rep == 1: # ind
+                        memory_weight_tr = memory_weight_tr_ind[planets[0], 0] + memory_weight_tr_ind[planets[1], 0]
+                    elif mem_unc_rep == -1: # set
+                        memory_weight_tr = memory_weight_tr_set[s1s[i], 0]
+
+                    # 4. Memory (representational) uncertainty of value: beta_ndt4
+                    # memory_weight_val =
+                    total_memory_weight_val = memory_weight_val[planets[0],0] + memory_weight_val[planets[0],1] + \
+                                              memory_weight_val[planets[1],0] + memory_weight_val[planets[1],1]
+
+
+
+
 
                     # sum together
-                    t_ = beta_ndt * (var2+var1) + beta_ndt2 * (entropy1 + entropy2) + beta_ndt3*np.log(ndt_counter_set[s1s[i],0]) + t
+                    t_ = t + \
+                         beta_ndt * (var2_tr+var1_tr) + \
+                         beta_ndt2 * (var1_1 + var1_2 + var2_1 + var2+2) + \
+                         beta_ndt3 * memory_weight_tr + \
+                         beta_ndt4 * total_memory_weight_val
+                        # 1. Model uncertainty: transition
+                        # 2. Model uncertainty: value
+                        # 3. Memory uncertainty: transition
+                        # 4. Memory uncertainty: value
+
+
+                #beta_ndt3*np.log(ndt_counter_set[s1s[i],0]) + t
 
                     # t_ = ((np.log(ndt_counter_ind[planets[0],0]) + np.log(ndt_counter_ind[planets[1],0]))/2)*beta_ndt + \
                     #      np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + \
@@ -1536,22 +1656,29 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         a_2_ = a if a_2 == 100.00 else a_2
 
                         # CONFIGURE Z_2 USING Z_SIGMA AND V HERE!!!
-                        if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
-                            # z_2_ = z if z_2 == 0.5 else z_2
-                            z_2_ = z_2
-                        else: # if use 1st-stage dependent dr
-
-                            if z_sigma2 == 100.00: # don't use baseline
-                                z_2_ = 1 / (1 + np.exp(-v_*z_sigma))
-                            else: # use baseline
-                                z_2_ = 1 / (1 + np.exp(-(v_ * z_sigma + z_sigma2)))
+                        # if z_sigma ==100.00: # if don't use 1st-stage dependent drift rate
+                        #     # z_2_ = z if z_2 == 0.5 else z_2
+                        #     z_2_ = z_2
+                        # else: # if use 1st-stage dependent dr
+                        #
+                        #     if z_sigma2 == 100.00: # don't use baseline
+                        #         z_2_ = 1 / (1 + np.exp(-v_*z_sigma))
+                        #     else: # use baseline
+                        #         z_2_ = 1 / (1 + np.exp(-(v_ * z_sigma + z_sigma2)))
 
                         t_2_ = t if t_2 == 100.00 else t_2
 
-                        qs = qs_mb[s2s[i],:]
+                        mode1 = mode_beta(alphaf(qs_mb_success[s2s[i], 0]),
+                                  betaf(qs_mb_n[s2s[i], 0], qs_mb_success[s2s[i], 0]))
+                        mode2 = mode_beta(alphaf(qs_mb_success[s2s[i], 1]),
+                                  betaf(qs_mb_n[s2s[i], 1], qs_mb_success[s2s[i], 1]))
+
+                        qs = [mode1, mode2]
+
                         dtq = qs[1] - qs[0]
                         rt = x2s[i]
-
+                        # z_ = dtq * z_scaler
+                        z_2_ = dtq * z_scaler_2
                         p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
                         # If one probability = 0, the log sum will be -Inf
                         p = p * (1 - p_outlier) + wp_outlier
@@ -1561,40 +1688,60 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
             # Updating ndt-related variables, regardless of pdf
             # Updating encountraces
-            ndt_counter_set[s1s[i], 0] += 1
-            ndt_counter_ind[s2s[i], 0] += 1
+            # ndt_counter_ind[s2s[i], 0] += 1
+            # ndt_counter_set[s1s[i], 0] += 1
+
+            # Updating memory for transition matrix
+            memory_weight_tr_ind *= (1 - gamma__) # forgetting for all
+            memory_weight_tr_set *= (1 - gamma__) # forgetting for all
+            memory_weight_tr_ind[s2s[i], 0] += 1
+            memory_weight_tr_set[s1s[i], 0] += 1
+
+            # Updating memory for values
+            memory_weight_val *= (1 - gamma_) # forgetting for all
+            memory_weight_val[s2s[i], responses2[i]] += 1
 
             # Updating common/rare transition uncertainty (beta parameters)
             planets = state_combinations[s1s[i]]
             chosen_state = planets[responses1[i]]
-            beta_n[chosen_state] += 1
+            beta_n_ind[chosen_state] += 1
+            beta_n_set[s1s[i]] += 1
             if chosen_state == s2s[i]:
-                beta_success[chosen_state] += 1
+                beta_success_ind[chosen_state] += 1
+                beta_success_set[s1s[i]] += 1
+            # Update mode of beta
+
 
 
             # update Q values, regardless of pdf
             # just update 1st-stage MF values if estimating
-            dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
-            qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
+            # dtQ1 = qs_mb[s2s[i],responses2[i]] - qs_mf[s1s[i], responses1[i]] # delta stage 1
+            # qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + alfa * dtQ1 # delta update for qmf
 
-            dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
-            qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
-            if lambda_ != 100.00: # if using eligibility trace
-                qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+            # dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
+            # qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
+            # if lambda_ != 100.00: # if using eligibility trace
+            #     qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+
+            # Replace TD updating rule with beta (bayesian) updating
+            qs_mb_n[s2s[i], responses2[i]] += 1
+            if feedbacks[i] == 1:
+                qs_mb_success[s2s[i], responses2[i]] += 1
 
 
             # memory decay for unexperienced options in this trial
 
-            for s_ in range(nstates):
-                for a_ in range(2):
-                    if (s_ is not s2s[i]) or (a_ is not responses2[i]):
-                        # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                        qs_mb[s_,a_] *= (1-gamma__)
-
-            for s_ in range(comb(nstates,2,exact=True)):
-                for a_ in range(2):
-                    if (s_ is not s1s[i]) or (a_ is not responses1[i]):
-                        qs_mf[s_,a_] *= (1-gamma_)
+            # for s_ in range(nstates):
+            #     for a_ in range(2):
+            #         if (s_ is not s2s[i]) or (a_ is not responses2[i]):
+            #             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+            #             # qs_mb[s_,a_] *= (1-gamma__)
+            #             qs_mb[s_, a_] *= (1 - gamma_)
+            #
+            # for s_ in range(comb(nstates,2,exact=True)):
+            #     for a_ in range(2):
+            #         if (s_ is not s1s[i]) or (a_ is not responses1[i]):
+            #             qs_mf[s_,a_] *= (1-gamma_)
 
             counter[s1s[i]] += 1
 
