@@ -1371,7 +1371,6 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] beta_n_ind = np.zeros((nstates, 1))
     cdef np.ndarray[double, ndim=2] beta_success_ind = np.zeros((nstates,1))
 
-    cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
 
     cdef double dtQ1
     cdef double dtQ2
@@ -1425,7 +1424,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=1] Qmb
     cdef double dtq
     cdef double rt
-    # cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
+    cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
     cdef np.ndarray[double, ndim=2] Tm
     cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
 
