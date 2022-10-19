@@ -1075,6 +1075,6 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         p_outlier=p_outlier,
         **wp
     )
-WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
+# WienerRL = stochastic_from_dist("wienerRL_2step", wienerRL_like_2step)
 # WienerRL = stochastic_from_dist("wienerRL_bayesianQ", wienerRL_like_bayesianQ)
-# WienerRL = stochastic_from_dist("wienerRL_uncertainty", wienerRL_like_uncertainty)
+WienerRL = stochastic_from_dist("wienerRL_uncertainty", wienerRL_like_uncertainty)
