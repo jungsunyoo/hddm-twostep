@@ -1566,8 +1566,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     #     dtq = qs[1] - qs[0]
                     #     z_ = dtq * z_scaler
                     #     sig = 1 / (1 + np.exp(-z_))
-                    z_ = dtq * z_scaler
-                    sig = 1 / (1 + np.exp(-z_))
+                    if z_scaler == 100.00:
+                        sig = 0.5
+                    else:
+                        z_ = dtq * z_scaler
+                        sig = 1 / (1 + np.exp(-z_))
 
                     rt = x1s[i]
 
@@ -1704,9 +1707,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         dtq = qs[1] - qs[0]
                         rt = x2s[i]
                         # z_ = dtq * z_scaler
-                        z_2_ = dtq * z_scaler_2
-
-                        sig = 1 / (1 + np.exp(-z_2_))
+                        if z_scaler_2 == 100.00:
+                            sig = 0.5
+                        else:
+                            z_2_ = dtq * z_scaler_2
+                            sig = 1 / (1 + np.exp(-z_2_))
                         # p = full_pdf(rt, v_, sv, a, sig * a,
                         #              sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
                         p = full_pdf(rt, (dtq * v_2_), sv, a_2_, sig * a_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive,

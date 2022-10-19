@@ -735,9 +735,9 @@ class HDDMrl(HDDM):
             if self.z_scaler_2:
                 wfpt_parents['z_scaler_2'] = knodes['z_scaler_2_bottom']
             else:
-                wfpt_parents['z_scaler_2'] = 0.00
+                wfpt_parents['z_scaler_2'] = 100.00
         else:
-            wfpt_parents['z_scaler_2'] = 0.00
+            wfpt_parents['z_scaler_2'] = 100.00
 
         return wfpt_parents
 
