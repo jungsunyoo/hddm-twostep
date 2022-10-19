@@ -1567,10 +1567,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     #     z_ = dtq * z_scaler
                     #     sig = 1 / (1 + np.exp(-z_))
                     if z_scaler == 100.00:
-                        sig = 0.5
+                        sig = z
                     else:
                         z_ = dtq * z_scaler
                         sig = 1 / (1 + np.exp(-z_))
+                        sig *= a
 
                     rt = x1s[i]
 
@@ -1668,7 +1669,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     #      np.log(ndt_counter_set[s1s[i],0])*beta_ndt2 + \
                     #      t
 
-                    p = full_pdf(rt, v_, sv, a, sig * a,
+                    p = full_pdf(rt, v_, sv, a, sig,
                                  sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
                     # If one probability = 0, the log sum will be -Inf
                     p = p * (1 - p_outlier) + wp_outlier
@@ -1708,13 +1709,15 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         rt = x2s[i]
                         # z_ = dtq * z_scaler
                         if z_scaler_2 == 100.00:
-                            sig = 0.5
+                            # sig = 0.5
+                            sig = z_2
                         else:
                             z_2_ = dtq * z_scaler_2
                             sig = 1 / (1 + np.exp(-z_2_))
+                            sig *= a_2_
                         # p = full_pdf(rt, v_, sv, a, sig * a,
                         #              sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
-                        p = full_pdf(rt, (dtq * v_2_), sv, a_2_, sig * a_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive,
+                        p = full_pdf(rt, (dtq * v_2_), sv, a_2_, sig, sz, t_2_, st, err, n_st, n_sz, use_adaptive,
                                      simps_err)
                         # p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
                         # If one probability = 0, the log sum will be -Inf
