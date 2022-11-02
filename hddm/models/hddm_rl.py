@@ -681,7 +681,7 @@ class HDDMrl(HDDM):
             wfpt_parents['z_interaction'] = 0.00
 
         # if self.z_2_depend:
-        wfpt_parents['z_sigma'] = knodes['z_sigma_bottom'] if self.z_2_depend else 0.00
+        wfpt_parents['z_sigma'] = knodes['z_sigma_bottom'] if self.z_sigma else 0.00
         wfpt_parents['z_sigma2'] = knodes['z_sigma2_bottom'] if self.z_sigma2 else 0.00
         # wfpt_parents['z_sigma'] = 100.00
         #
