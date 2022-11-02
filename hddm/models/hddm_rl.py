@@ -64,7 +64,8 @@ class HDDMrl(HDDM):
         # JY added on 2022-03-15 for configuring starting point bias
         # if second-stage starting point depends on 1st-stage parameters
 
-        self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
+        # self.z_2_depend = kwargs.pop("z_2_depend", False)  # whether z_2 depends on previous stage
+        self.z_sigma = kwargs.pop("z_sigma", False)  # for model 21
         self.z_sigma2 = kwargs.pop("z_sigma2", False)  # for model 21
 
         self.free_z_2 = kwargs.pop("free_z_2",False) # free parameter for z_2
@@ -344,18 +345,19 @@ class HDDMrl(HDDM):
                             "z_interaction", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
                     )
 
-            if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+            # if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+            if self.z_sigma:  # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
                 knodes.update(
                     self._create_family_invlogit(
                         "z_sigma", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
 
                 )
-                if self.z_sigma2:
-                    knodes.update(
-                        self._create_family_invlogit(
-                            "z_sigma2", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
+            if self.z_sigma2:
+                knodes.update(
+                    self._create_family_invlogit(
+                        "z_sigma2", value=0.5, g_tau=0.5 ** -2, std_std=0.05)
 
-                    )
+                )
             if self.two_stage and self.z_scaler_2:
                 knodes.update(
                     self._create_family_normal_non_centered(
@@ -591,18 +593,19 @@ class HDDMrl(HDDM):
                             "z2", value=0, g_tau=50 ** -2, std_std=10 # uninformative prior
                         )
                     )
-            if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+            # if self.z_2_depend: # if second-stage starting point depends on first stage v -> only z std is needed, use z0 as std?
+            if self.z_sigma:
                 knodes.update(
                     self._create_family_normal_normal_hnormal(
                         "z_sigma", value=0, g_tau=50 ** -2, std_std=10 # uninformative prior
                     )
                 )
-                if self.z_sigma2:
-                    knodes.update(
-                        self._create_family_normal_normal_hnormal(
-                            "z_sigma2", value=0, g_tau=50 ** -2, std_std=10  # uninformative prior
-                        )
+            if self.z_sigma2:
+                knodes.update(
+                    self._create_family_normal_normal_hnormal(
+                        "z_sigma2", value=0, g_tau=50 ** -2, std_std=10  # uninformative prior
                     )
+                )
             if self.two_stage and self.z_scaler_2:
                 knodes.update(
                     self._create_family_normal_normal_hnormal(
