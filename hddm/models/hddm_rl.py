@@ -77,8 +77,8 @@ class HDDMrl(HDDM):
         self.regress_ndt3 = kwargs.pop("regress_ndt3", False)
         self.regress_ndt4 = kwargs.pop("regress_ndt4", False)
 
-        self.model_unc_rep = kwargs.pop("model_unc_rep") # uncertainty of model : set or ind?
-        self.mem_unc_rep = kwargs.pop("mem_unc_rep") # uncertainty of memory: set or ind?
+        self.model_unc_rep = kwargs.pop("model_unc_rep", False) # uncertainty of model : set or ind?
+        self.mem_unc_rep = kwargs.pop("mem_unc_rep", False) # uncertainty of memory: set or ind?
 
         self.choice_model = False # just a placeholder for compatibility
 
