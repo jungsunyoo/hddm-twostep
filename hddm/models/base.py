@@ -63,6 +63,9 @@ class AccumulatorModel(kabuki.Hierarchical):
                 ("sv" in self.include)
                 or ("st" in self.include)
                 or ("sz" in self.include)
+                or ("sv2" in self.include)
+                or ("st2" in self.include)
+                or ("sz2" in self.include)
             ):
                 self.model = "full_ddm"
                 print("Set model to full_ddm")
@@ -1105,7 +1108,7 @@ class HDDMBase(AccumulatorModel):
     ):
 
         self.default_intervars = kwargs.pop(
-            "default_intervars", {"sz": 0, "st": 0, "sv": 0}
+            "default_intervars", {"sz": 0, "st": 0, "sv": 0, "sz2": 0, "st2": 0, "sv2": 0}
         )
 
         self._kwargs = kwargs
@@ -1115,7 +1118,7 @@ class HDDMBase(AccumulatorModel):
         if not hasattr(self, "model"):
             print("No model attribute --> setting up standard HDDM")
 
-            if ("st" in include) or ("sz" in include) or ("sv" in include):
+            if ("st" in include) or ("sz" in include) or ("sv" in include) or ("st2" in include) or ("sz2" in include) or ("sv2" in include) :
                 self.model = "full_ddm"
             else:
                 self.model = "ddm"
@@ -1183,7 +1186,7 @@ class HDDMBase(AccumulatorModel):
                 if include == "all":
                     [
                         self.include.add(param)
-                        for param in ("z", "st", "sv", "sz", "p_outlier")
+                        for param in ("z", "st", "sv", "sz", "st2", "sv2", "sz2", "p_outlier")
                     ]
                 elif isinstance(include, str):
                     self.include.add(include)
@@ -1219,6 +1222,10 @@ class HDDMBase(AccumulatorModel):
                 "t_2",
                 "z_2",
                 "alpha2",
+                # included in 2022-11-01:
+                "st2",
+                "sz2",
+                "sv2"
 
 
 

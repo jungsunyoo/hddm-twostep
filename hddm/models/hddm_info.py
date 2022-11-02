@@ -129,6 +129,10 @@ class HDDM(HDDMBase):
                 "v_std": 1,
                 "alpha": 1.5,
                 "pos_alpha": 1.5,
+                "a_2": 1,
+                "t_2": 0.01,
+                "v_2": 1.5,
+                "z_2": 0.1,
             }
 
         # AF-Q: Is emcee actually used or can this be deleted ?
@@ -147,6 +151,11 @@ class HDDM(HDDMBase):
             "v_std": 1,
             "alpha": 1.5,
             "pos_alpha": 1.5,
+            "a_2": 1,
+            "t_2": 0.1,
+            "v_2": 1.5,
+            "z_2": 0.1,
+
         }
 
         if self.nn:
@@ -284,6 +293,22 @@ class HDDM(HDDMBase):
                 value=0.001,
                 depends=self.depends["st"],
             )
+        if "sv2" in include:
+            knodes["sv2_bottom"] = Knode(
+                pm.HalfNormal, "sv2", tau=2 ** -2, value=1, depends=self.depends["sv2"]
+            )
+        if "sz2" in include:
+            knodes["sz2_bottom"] = Knode(
+                pm.Beta, "sz2", alpha=1, beta=3, value=0.01, depends=self.depends["sz2"]
+            )
+        if "st2" in include:
+            knodes["st2_bottom"] = Knode(
+                pm.HalfNormal,
+                "st2",
+                tau=0.3 ** -2,
+                value=0.001,
+                depends=self.depends["st2"],
+            )
         if "z" in include:
             knodes.update(
                 self._create_family_invlogit(
@@ -365,6 +390,28 @@ class HDDM(HDDMBase):
                 value=0.01,
                 depends=self.depends["st"],
             )
+        if "sv2" in include:
+            knodes["sv2_bottom"] = Knode(
+                pm.Uniform,
+                "sv2",
+                lower=1e-6,
+                upper=1e3,
+                value=1,
+                depends=self.depends["sv2"],
+            )
+        if "sz2" in include:
+            knodes["sz2_bottom"] = Knode(
+                pm.Beta, "sz2", alpha=1, beta=1, value=0.01, depends=self.depends["sz2"]
+            )
+        if "st2" in include:
+            knodes["st2_bottom"] = Knode(
+                pm.Uniform,
+                "st2",
+                lower=1e-6,
+                upper=1e3,
+                value=0.01,
+                depends=self.depends["st2"],
+            )
         if "z" in include:
             knodes.update(
                 self._create_family_invlogit(
@@ -399,7 +446,8 @@ class HDDM(HDDMBase):
                 self.mc.use_step_method(steps.kNormalNormal, node)
             else:
                 knode_name = node_descr["knode_name"].replace("_subj", "")
-                if knode_name in ["st", "sv", "sz"]:
+                # if knode_name in ["st", "sv", "sz"]:
+                if knode_name in ["st", "sv", "sz", "st2", "sv2", "sz2"]:
                     left = 0
                 else:
                     left = None

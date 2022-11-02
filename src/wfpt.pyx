@@ -48,6 +48,18 @@ np.warnings.filterwarnings('ignore', '(overflow|invalid)')
 
 np.random.seed(seed=1234)
 
+cdef extern from "math.h" nogil:
+    double sin(double)
+    double cos(double)
+    double log(double)
+    double exp(double)
+    double sqrt(double)
+#    double fmax(double, double)
+    double pow(double, double)
+    double ceil(double)
+    double floor(double)
+    double fabs(double)
+    double M_PI
 
 # JY added in 2022-10-01 for uncertainty modulation
 
@@ -67,7 +79,9 @@ def mode_beta(double a, double b): # when a, b > 1
     return (a-1) / (a + b -2)
 
 def softmax_stable(np.ndarray[double, ndim=1] x):
-    return(np.exp(x - np.max(x)) / np.exp(x - np.max(x)).sum())
+    return(exp(x - np.max(x)) / exp(x - np.max(x)).sum())
+
+
 
 # def entr(double x, out=None):
 #     cdef double x_
@@ -452,11 +466,11 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                       double v0, double v1, double v2,
                       double v, # don't use second stage
-                      # double sv,
+                      double sv,
                       double a,
                       double z0, double z1, double z2,
                       double z,
-                      # double sz,
+                      double sz,
                       double t,
                       int nstates,
                       # double v_qval, double z_qval,
@@ -467,6 +481,9 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double z_2,
                       double t_2,
                       double v_2,
+                      double sz2,
+                      double st2,
+                      double sv2,
                       double alpha2,
                       double w, double w2, double z_scaler,
                       double z_sigma, double z_sigma2,
@@ -474,7 +491,8 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double beta_ndt, double beta_ndt2, double beta_ndt3,
 
 
-                      # double st,
+                      double st,
+
 
                       double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
                       double p_outlier=0, double w_outlier=0,
@@ -482,9 +500,9 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
     # cdef double a = 1
-    cdef double sz = 0
-    cdef double st = 0
-    cdef double sv = 0
+    # cdef double sz = 0
+    # cdef double st = 0
+    # cdef double sv = 0
 
 
     cdef Py_ssize_t size = x1.shape[0]
@@ -689,7 +707,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         dtq = qs[1] - qs[0]
                         rt = x2s[i]
 
-                        p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
+                        p = full_pdf(rt, (dtq * v_2_), sv2, a_2_, z_2_, sz2, t_2_, st2, err, n_st, n_sz, use_adaptive, simps_err)
                         # If one probability = 0, the log sum will be -Inf
                         p = p * (1 - p_outlier) + wp_outlier
                         if p == 0:
@@ -1292,11 +1310,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                       double v0, double v1, double v2,
                       double v, # don't use second stage
-                      # double sv,
+                      double sv,
                       double a,
                       double z0, double z1, double z2,
                       double z,
-                      # double sz,
+                      double sz,
                       double t,
                       int nstates,
                       # double v_qval, double z_qval,
@@ -1307,6 +1325,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double z_2,
                       double t_2,
                       double v_2,
+                      double sz2,
+                      double st2,
+                      double sv2,
                       double alpha2,
                       double w, double w2, double z_scaler, double z_scaler_2,
                       double z_sigma, double z_sigma2,
@@ -1315,7 +1336,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double model_unc_rep, double mem_unc_rep,
 
 
-                      # double st,
+                      double st,
 
                       double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
                       double p_outlier=0, double w_outlier=0,
@@ -1323,9 +1344,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
     # cdef double a = 1
-    cdef double sz = 0
-    cdef double st = 0
-    cdef double sv = 0
+    # cdef double sz = 0
+    # cdef double st = 0
+    # cdef double sv = 0
 
 
     cdef Py_ssize_t size = x1.shape[0]
@@ -1343,18 +1364,21 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double gamma__
     cdef double lambda__
 
+    cdef double w_
+    cdef double w2_
+
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
 
 
-    # cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-    # cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+    cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
 
 
     # cdef np.ndarray[double, ndim=2] qs_mf_success = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
     # cdef np.ndarray[double, ndim=2] qs_mf_n = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
 
-    cdef np.ndarray[double, ndim=2] qs_mb_success = np.zeros((nstates, 2)) # second-stage Q-values
-    cdef np.ndarray[double, ndim=2] qs_mb_n = np.zeros((nstates, 2)) # second-stage Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb_n = np.ones((nstates, 2)) * 2 # second-stage Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb_success = np.ones((nstates, 2))  # second-stage Q-values
 
     cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1))
     cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1))
@@ -1365,11 +1389,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] memory_weight_val = np.ones((nstates, 2))
 
     # JY added for uncertainty modeling
-    cdef np.ndarray[double, ndim=2] beta_n_set = np.zeros((comb(nstates,2,exact=True),1))
-    cdef np.ndarray[double, ndim=2] beta_success_set = np.zeros((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
+    cdef np.ndarray[double, ndim=2] beta_success_set = np.ones((comb(nstates,2,exact=True),1))
 
-    cdef np.ndarray[double, ndim=2] beta_n_ind = np.zeros((nstates, 1))
-    cdef np.ndarray[double, ndim=2] beta_success_ind = np.zeros((nstates,1))
+    cdef np.ndarray[double, ndim=2] beta_n_ind = np.ones((nstates, 1)) * 2
+    cdef np.ndarray[double, ndim=2] beta_success_ind = np.ones((nstates,1))
 
 
     cdef double dtQ1
@@ -1388,6 +1412,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double z_2_
     cdef double a_2_
     cdef double t_2_
+
 
     cdef double var1
     cdef double var2
@@ -1429,8 +1454,8 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=1] Qmb
     cdef double dtq
     cdef double rt
-    cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
-    # cdef np.ndarray[double, ndim=2] Tm
+    # cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]]) # transition matrix
+    cdef np.ndarray[double, ndim=2] Tm
     cdef np.ndarray[long, ndim=2] state_combinations = np.array(list(itertools.combinations(np.arange(nstates),2)))
 
     # cdef double transition_priors = np.ones((comb(nstates,2,exact=True),1)) * 0.5
@@ -1458,15 +1483,16 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         s2s = s2[split_by == s]
 
         s_size = x1s.shape[0]
-        # qs_mf[:,0] = q
-        # qs_mf[:,1] = q
-        #
-        # qs_mb[:,0] = q
-        # qs_mb[:,1] = q
+        qs_mf[:,0] = q
+        qs_mf[:,1] = q
 
+        qs_mb[:,0] = q
+        qs_mb[:,1] = q
 
-        alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
-        gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
+        if alpha != 100.00:
+            alfa = (2.718281828459**alpha) / (1 + 2.718281828459**alpha)
+        if gamma != 100.00:
+            gamma_ = (2.718281828459**gamma) / (1 + 2.718281828459**gamma)
         if gamma2 != 100.00:
             gamma__ = (2.718281828459**gamma2) / (1 + 2.718281828459**gamma2)
         else:
@@ -1478,9 +1504,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if lambda_ != 100.00:
             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
         if w != 100.00:
-            w = (2.718281828459**w) / (1 + 2.718281828459**w)
+            w_ = (2.718281828459**w) / (1 + 2.718281828459**w_)
         if w2 != 100.00:
-            w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
+            w2_ = (2.718281828459**w2) / (1 + 2.718281828459**w2_)
 
         # if beta_ndt != 100.00:
         #     beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
@@ -1510,32 +1536,43 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # 1st stage
                     planets = state_combinations[s1s[i]]
 
-                    # # Transition matrix
-                    # # Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
-                    # if model_unc_rep == 1: # if ind
-                    #     Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
-                    #                     mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
-                    #                    [mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
-                    #                     mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
-                    # elif model_unc_rep == -1: # if set
-                    #     Tm = np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
-                    #                     1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
-                    #                    [1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
-                    #                     mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+                    # Transition matrix
+                    # Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
+                    if model_unc_rep == 1: # if ind
+                        Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
+                                       [mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+                    elif model_unc_rep == -1: # if set
+                        Tm = np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
+                                       [1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+
+
+
+                    if beta_ndt2 != 0.00: # if we estimate value with uncertainty
+                        mode1_1 = mode_beta(alphaf(qs_mb_success[planets[0],0]),
+                                            betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
+                        mode1_2 = mode_beta(alphaf(qs_mb_success[planets[0],1]),
+                                            betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
+                        mode2_1 = mode_beta(alphaf(qs_mb_success[planets[1], 0]),
+                                            betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
+                        mode2_2 = mode_beta(alphaf(qs_mb_success[planets[1], 1]),
+                                            betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
+
+                        Qmb = np.dot(Tm, [np.max([mode1_1, mode1_2]), np.max([mode2_1, mode2_2])])
+
+                    else:
+                        Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+
+                    # dtq_mb = Qmb[1] - Qmb[0]  # 1 is upper, 0 is lower
+                    # dtq_mf = qs_mf[s1s[i], 1] - qs_mf[s1s[i], 0]
 
 
 
 
-                    mode1_1 = mode_beta(alphaf(qs_mb_success[planets[0],0]),
-                                        betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
-                    mode1_2 = mode_beta(alphaf(qs_mb_success[planets[0],1]),
-                                        betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
-                    mode2_1 = mode_beta(alphaf(qs_mb_success[planets[1], 0]),
-                                        betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
-                    mode2_2 = mode_beta(alphaf(qs_mb_success[planets[1], 1]),
-                                        betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
 
-                    Qmb = np.dot(Tm, [np.max([mode1_1, mode1_2]), np.max([mode2_1, mode2_2])])
                     # cdef np.ndarray[double, ndim=2] Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
 
                     # planet 1 mode
@@ -1546,32 +1583,42 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # dtq = qs[1] - qs[0]
                     dtq_mb = Qmb[1] - Qmb[0] # 1 is upper, 0 is lower
-                    # dtq_mf = qs_mf[s1s[i],1] - qs_mf[s1s[i],0]
-                    # if v == 100.00: # if v_reg
-                    #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+                    dtq_mf = qs_mf[s1s[i],1] - qs_mf[s1s[i],0]
+                    if v == 100.00: # if v_reg
+                        v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
 
-                    # else: # if don't use v_reg:
+                    else: # if don't use v_reg:
                         # if v_qval == 0: # use both qmb and qmf
-                        # qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
-                        # dtq = qs[1] - qs[0]
-                    v_ = dtq_mb * v
+                        if w != 100.00: # if using w parameter:
+                            qs = w_ * Qmb + (1-w_) * qs_mf[s1s[i],:] # Update for 1st trial
+                            dtq = qs[1] - qs[0]
+                            v_ = dtq * v
+                        else:
+
+                            v_ = dtq_mb * v # for uncertainty modeling: use just mb for now
 
                     # if z == 0.5: # if use z_reg:
                     # if w2 == 100.00: # if use z_reg
+                    if (z0 != 0.00) or (z1 != 0.00) or (z2 != 0.00) or (z_interaction != 0.00): # if use regression
                         # Transform regression parameters so that >0
-                        # z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
-                        # sig = 1/(1+np.exp(-z_))
-                    # else: # if don't use z_reg:
-                    #     qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
-                    #     dtq = qs[1] - qs[0]
-                    #     z_ = dtq * z_scaler
-                    #     sig = 1 / (1 + np.exp(-z_))
-                    if z_scaler == 100.00:
-                        sig = z
-                    else:
-                        z_ = dtq * z_scaler
-                        sig = 1 / (1 + np.exp(-z_))
-                        sig *= a
+                        z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+                        sig = 1/(1+np.exp(-z_))
+                    else: # if don't use z_reg:
+                        # if w2 != 100.00:
+                        if w2 != 100.00:   # use w parameter for starting point bias
+                            qs = w2_ * Qmb + (1-w2_) * qs_mf[s1s[i],:] # Update for 1st trial
+                            dtq = qs[1] - qs[0]
+                            z_ = dtq * z_scaler
+                            sig = 1 / (1 + np.exp(-z_))
+                        else:
+                            if z_scaler != 100.00: # if using z_scaler but don't use w2 nor z0,z1,z2,z_int
+                                z_ = dtq_mb * z_scaler + z_sigma
+                                sig = 1 / (1 + exp(-z_))
+                                sig *= a
+                            else:
+                                sig = z # 0.5
+
+
 
                     rt = x1s[i]
 
@@ -1584,29 +1631,30 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # _, var2, _, _ = beta.stats(alphaf(beta_success[planets[1]]),
                     #                            betaf(beta_n[planets[1]], beta_success[planets[1]]),
                     #                            moments='mvsk')
+                    if beta_ndt != 0.00:
+                        if model_unc_rep == 1: # ind
 
-                    if model_unc_rep == 1: # ind
+                            # 1. Get variance of beta (transition)
+                            alpha_b = alphaf(beta_success_ind[planets[0]])
+                            beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+                            var_tr = var_beta(alpha_b, beta_b)
 
-                        # 1. Get variance of beta (transition)
-                        alpha_b = alphaf(beta_success_ind[planets[0]])
-                        beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
-                        var_tr = var_beta(alpha_b, beta_b)
+                            alpha_b = alphaf(beta_success_ind[planets[1]])
+                            beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+                            var_tr += var_beta(alpha_b, beta_b)
+                            var_tr /= 2
 
-                        alpha_b = alphaf(beta_success_ind[planets[1]])
-                        beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
-                        var_tr += var_beta(alpha_b, beta_b)
-                        var_tr /= 2
+                            # 2. Get variance of beta (value)
+                            # alpha_b = alphaf()
 
-                        # 2. Get variance of beta (value)
-                        # alpha_b = alphaf()
+                        elif model_unc_rep == -1: # set
 
-                    elif model_unc_rep == -1: # set
-
-                        # 1. Get variance of beta (transition)
-                        alpha_b = alphaf(beta_success_set[s1s[i]])
-                        beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
-                        var_tr = var_beta(alpha_b, beta_b)
-                        # var_tr = 0
+                            # 1. Get variance of beta (transition)
+                            alpha_b = alphaf(beta_success_set[s1s[i]])
+                            beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+                            var_tr = var_beta(alpha_b, beta_b)
+                    else:
+                        var_tr = 0
 
                     # 2. Subjective entropy
                     # softmax -> entropy of 2nd stage of planet 1
@@ -1618,36 +1666,41 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     #
                     # entropy1 = entropyf(np.array([qs_mb[planets[0], 0], qs_mb[planets[0],1]]))
                     # entropy2 = entropyf(np.array([qs_mb[planets[1], 0], qs_mb[planets[1],1]]))
-
-                    # 2. Model uncertainty of the 2nd-stage value
-                    var_val = var_beta(alphaf(qs_mb_success[planets[0],0]),
-                                        betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
-                    var_val += var_beta(alphaf(qs_mb_success[planets[0],1]),
-                                        betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
-                    var_val += var_beta(alphaf(qs_mb_success[planets[1], 0]),
-                                        betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
-                    var_val += var_beta(alphaf(qs_mb_success[planets[1], 1]),
-                                        betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
-                    var_val /= 4
-
+                    if beta_ndt2 != 0.00:
+                        # 2. Model uncertainty of the 2nd-stage value
+                        var_val = var_beta(alphaf(qs_mb_success[planets[0],0]),
+                                            betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
+                        var_val += var_beta(alphaf(qs_mb_success[planets[0],1]),
+                                            betaf(qs_mb_n[planets[0],1], qs_mb_success[planets[0],1]))
+                        var_val += var_beta(alphaf(qs_mb_success[planets[1], 0]),
+                                            betaf(qs_mb_n[planets[1], 0], qs_mb_success[planets[1], 0]))
+                        var_val += var_beta(alphaf(qs_mb_success[planets[1], 1]),
+                                            betaf(qs_mb_n[planets[1], 1], qs_mb_success[planets[1], 1]))
+                        var_val /= 4
+                    else: # beta_ndt2 = 0
+                        var_val = 0 # exception handling
 
                     # 3. Memory (representational) uncertainty of the transition: beta_ndt3
-
-                    if mem_unc_rep == 1: # ind
-                        memory_weight_tr = (memory_weight_tr_ind[planets[0], 0] + memory_weight_tr_ind[planets[1], 0])/2
-                    elif mem_unc_rep == -1: # set
-                        memory_weight_tr = memory_weight_tr_set[s1s[i], 0]
+                    if beta_ndt3 != 0.00:
+                        if mem_unc_rep == 1: # ind
+                            memory_weight_tr = (memory_weight_tr_ind[planets[0], 0] + memory_weight_tr_ind[planets[1], 0])/2
+                        elif mem_unc_rep == -1: # set
+                            memory_weight_tr = memory_weight_tr_set[s1s[i], 0]
+                    else: # beta_ndt3 = 0
+                        memory_weight_tr = 0
 
                     # 4. Memory (representational) uncertainty of value: beta_ndt4
-                    # memory_weight_val =
-                    # total_memory_weight_val = memory_weight_val[planets[0],0] + memory_weight_val[planets[0],1] + \
-                    #                           memory_weight_val[planets[1],0] + memory_weight_val[planets[1],1]
-                    total_memory_weight_val = memory_weight_val[planets[0],0]
-                    total_memory_weight_val += memory_weight_val[planets[0],1]
-                    total_memory_weight_val += memory_weight_val[planets[1],0]
-                    total_memory_weight_val += memory_weight_val[planets[1],1]
-                    total_memory_weight_val /= 4
-
+                    if beta_ndt4 != 0.00:
+                        # memory_weight_val =
+                        # total_memory_weight_val = memory_weight_val[planets[0],0] + memory_weight_val[planets[0],1] + \
+                        #                           memory_weight_val[planets[1],0] + memory_weight_val[planets[1],1]
+                        total_memory_weight_val = memory_weight_val[planets[0],0]
+                        total_memory_weight_val += memory_weight_val[planets[0],1]
+                        total_memory_weight_val += memory_weight_val[planets[1],0]
+                        total_memory_weight_val += memory_weight_val[planets[1],1]
+                        total_memory_weight_val /= 4
+                    else:
+                        total_memory_weight_val = 0
 
 
 
@@ -1661,6 +1714,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         # 2. Model uncertainty: value
                         # 3. Memory uncertainty: transition
                         # 4. Memory uncertainty: value
+
+                        # JUST USE 1 AND 3 FOR NOW (Just transition matrix for now)
+
 
 
                 #beta_ndt3*np.log(ndt_counter_set[s1s[i],0]) + t
@@ -1697,13 +1753,17 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         #         z_2_ = 1 / (1 + np.exp(-(v_ * z_sigma + z_sigma2)))
 
                         t_2_ = t if t_2 == 100.00 else t_2
+                        if beta_ndt2 != 0.00: # if we estimate value with uncertainty
+                            mode1 = mode_beta(alphaf(qs_mb_success[s2s[i], 0]),
+                                      betaf(qs_mb_n[s2s[i], 0], qs_mb_success[s2s[i], 0]))
+                            mode2 = mode_beta(alphaf(qs_mb_success[s2s[i], 1]),
+                                      betaf(qs_mb_n[s2s[i], 1], qs_mb_success[s2s[i], 1]))
+                            qs = [mode1, mode2]
+                        else:
+                            qs = qs_mb[s2s[i], :]
+                            # dtq = qs[1] - qs[0]
 
-                        mode1 = mode_beta(alphaf(qs_mb_success[s2s[i], 0]),
-                                  betaf(qs_mb_n[s2s[i], 0], qs_mb_success[s2s[i], 0]))
-                        mode2 = mode_beta(alphaf(qs_mb_success[s2s[i], 1]),
-                                  betaf(qs_mb_n[s2s[i], 1], qs_mb_success[s2s[i], 1]))
 
-                        qs = [mode1, mode2]
 
                         dtq = qs[1] - qs[0]
                         rt = x2s[i]
@@ -1712,12 +1772,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             # sig = 0.5
                             sig = z_2
                         else:
-                            z_2_ = dtq * z_scaler_2
-                            sig = 1 / (1 + np.exp(-z_2_))
+                            z_2_ = dtq * z_scaler_2 + z_sigma2
+                            sig = 1 / (1 + exp(-z_2_))
                             sig *= a_2_
                         # p = full_pdf(rt, v_, sv, a, sig * a,
                         #              sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
-                        p = full_pdf(rt, (dtq * v_2_), sv, a_2_, sig, sz, t_2_, st, err, n_st, n_sz, use_adaptive,
+                        p = full_pdf(rt, (dtq * v_2_), sv2, a_2_, sig, sz2, t_2_, st2, err, n_st, n_sz, use_adaptive,
                                      simps_err)
                         # p = full_pdf(rt, (dtq * v_2_), sv, a_2_, z_2_, sz, t_2_, st, err, n_st, n_sz, use_adaptive, simps_err)
                         # If one probability = 0, the log sum will be -Inf
@@ -1725,6 +1785,23 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         if p == 0:
                             return -np.inf
                         sum_logp += log(p)
+            # update Q values, regardless of pdf
+
+            # ndt_counter_set[s1s[i], 0] += 1
+            # ndt_counter_ind[s2s[i], 0] += 1
+
+            # just update 1st-stage MF values if estimating
+            if alpha != 100.00:
+                dtQ1 = qs_mb[s2s[i], responses2[i]] - qs_mf[s1s[i], responses1[i]]  # delta stage 1
+                qs_mf[s1s[i], responses1[i]] = qs_mf[
+                                                   s1s[i], responses1[i]] + alfa * dtQ1  # delta update for qmf
+            # if alpha2 != 100.00:
+                dtQ2 = feedbacks[i] - qs_mb[s2s[i], responses2[i]]  # delta stage 2
+                qs_mb[s2s[i], responses2[i]] = qs_mb[
+                                                   s2s[i], responses2[i]] + alfa2 * dtQ2  # delta update for qmb
+            if lambda_ != 100.00:  # if using eligibility trace
+                qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[
+                    i]] + lambda__ * dtQ2  # eligibility trace
 
             # Updating ndt-related variables, regardless of pdf
             # Updating encountraces
@@ -1737,15 +1814,15 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             # memory_weight_tr_set *= (1 - gamma__) # forgetting for all
             # memory_weight_tr_ind[s2s[i], 0] += 1
             # memory_weight_tr_set[s1s[i], 0] += 1
-
-            if mem_unc_rep == 1: # ind
-                for s_ in range(nstates):
-                    if s_ is not s2s[i]:
-                        memory_weight_tr_ind[s_,0] *= (1-gamma__)
-            if mem_unc_rep == -1: # set
-                for s_ in range(comb(nstates,2,exact=True)):
-                    if s_ is not s1s[i]:
-                        memory_weight_tr_set[s_,0] *= (1-gamma__)
+            if beta_ndt3 != 0.00:
+                if mem_unc_rep == 1: # ind
+                    for s_ in range(nstates):
+                        if s_ is not s2s[i]:
+                            memory_weight_tr_ind[s_,0] *= (1-gamma__)
+                if mem_unc_rep == -1: # set
+                    for s_ in range(comb(nstates,2,exact=True)):
+                        if s_ is not s1s[i]:
+                            memory_weight_tr_set[s_,0] *= (1-gamma__)
 
 
             # if mem_unc_rep == 1:  # ind
@@ -1756,13 +1833,26 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
             # Updating memory for values
+            if beta_ndt4 != 0.00:
+                for s_ in range(nstates):
+                    for a_ in range(2):
+                        if (s_ == s2s[i]) and (a_ == responses2[i]):
+                            pass
+                        else:
+                            memory_weight_val[s_, a_] *= (1-gamma_)
+            else: # just discount pointwise values
+                # memory decay for unexperienced options in this trial
 
-            for s_ in range(nstates):
-                for a_ in range(2):
-                    if (s_ == s2s[i]) and (a_ == responses2[i]):
-                        pass
-                    else:
-                        memory_weight_val[s_, a_] *= (1-gamma_)
+                for s_ in range(nstates):
+                    for a_ in range(2):
+                        if (s_ is not s2s[i]) or (a_ is not responses2[i]):
+                            # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+                            qs_mb[s_, a_] *= (1 - gamma__)
+
+                for s_ in range(comb(nstates, 2, exact=True)):
+                    for a_ in range(2):
+                        if (s_ is not s1s[i]) or (a_ is not responses1[i]):
+                            qs_mf[s_, a_] *= (1 - gamma_)
 
             # memory_weight_val *= (1 - gamma_) # forgetting for all
             # memory_weight_val[s2s[i], responses2[i]] += 1

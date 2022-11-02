@@ -678,8 +678,8 @@ class HDDMrl(HDDM):
             wfpt_parents['z_interaction'] = 0.00
 
         # if self.z_2_depend:
-        wfpt_parents['z_sigma'] = knodes['z_sigma_bottom'] if self.z_2_depend else 100.00
-        wfpt_parents['z_sigma2'] = knodes['z_sigma2_bottom'] if self.z_sigma2 else 100.00
+        wfpt_parents['z_sigma'] = knodes['z_sigma_bottom'] if self.z_2_depend else 0.00
+        wfpt_parents['z_sigma2'] = knodes['z_sigma2_bottom'] if self.z_sigma2 else 0.00
         # wfpt_parents['z_sigma'] = 100.00
         #
         # if self.z_reg:
@@ -788,8 +788,9 @@ def wienerRL_like(x, v, alpha, pos_alpha, sv, a, z, sz, t, st, p_outlier=0):
     )
 
 
-def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma,gamma2, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
-                                           two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, p_outlier=0): # regression ver2: bounded, a fixed to 1
+def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma,gamma2, a,z,sz,t,st,v,sv, a_2, z_2, t_2,v_2,alpha2,
+                                           two_stage, w, w2,z_scaler,z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3,
+                        st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -848,13 +849,13 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
         v1, # slope for mb
         v2, # slobe for mf
         v, # don't use second stage for now
-        # sv,
+        sv,
         a,
         z0, # bias: added for intercept regression 1st stage
         z1, # bias: added for slope regression mb 1st stage
         z2, # bias: added for slope regression mf 1st stage
         z,
-        # sz,
+        sz,
         t,
         nstates,
         # v_qval,
@@ -867,18 +868,22 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
         z_2,
         t_2,
         v_2,
+        sz2,
+        st2,
+        sv2,
         alpha2,
         w,
         w2,
         z_scaler,
         z_sigma,
         z_sigma2,
-        # st,
+
         window_start,
         window_size,
         beta_ndt,
         beta_ndt2,
         beta_ndt3,
+        st,
         p_outlier=p_outlier,
         **wp
     )
@@ -976,9 +981,9 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
 #         p_outlier=p_outlier,
 #         **wp
 #     )
-def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, gamma2, a,z,t,v, a_2, z_2, t_2,v_2,alpha2,
+def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, gamma2, a,z,sz,t,st,v,sv, a_2, z_2, t_2,v_2,alpha2,
                                            two_stage, w, w2,z_scaler, z_scaler_2, z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, beta_ndt4,
-                              model_unc_rep, mem_unc_rep, p_outlier=0): # regression ver2: bounded, a fixed to 1
+                              model_unc_rep, mem_unc_rep, st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -1037,13 +1042,13 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         v1, # slope for mb
         v2, # slobe for mf
         v, # don't use second stage for now
-        # sv,
+        sv,
         a,
         z0, # bias: added for intercept regression 1st stage
         z1, # bias: added for slope regression mb 1st stage
         z2, # bias: added for slope regression mf 1st stage
         z,
-        # sz,
+        sz,
         t,
         nstates,
         # v_qval,
@@ -1056,6 +1061,9 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         z_2,
         t_2,
         v_2,
+        sz2,
+        st2,
+        sv2,
         alpha2,
         w,
         w2,
@@ -1063,15 +1071,17 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         z_scaler_2,
         z_sigma,
         z_sigma2,
-        # st,
+
         window_start,
         window_size,
         beta_ndt,
         beta_ndt2,
         beta_ndt3,
         beta_ndt4,
+
         model_unc_rep,
         mem_unc_rep,
+        st,
         p_outlier=p_outlier,
         **wp
     )
