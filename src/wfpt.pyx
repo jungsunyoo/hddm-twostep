@@ -1548,6 +1548,8 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                                         1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
                                        [1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
                                         mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+                    else: # if don't model transition matrix
+                        Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
 
 
 
