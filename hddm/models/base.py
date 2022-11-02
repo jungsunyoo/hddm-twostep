@@ -1167,7 +1167,9 @@ class HDDMBase(AccumulatorModel):
                     if not self.t_share:
                         params.append('t_2')
                     if not self.z_share:
-                        if not self.z_2_depend: # if configuring so that z_2 depends on first stage, the param z_2 should not be used
+                        if not self.z_scaler_2:
+                        # if not self.z_2_depend: # if configuring so that z_2 depends on first stage, the param z_2 should not be used
+                        # if not self.z_sigma2:
                             # if bias:
                             if self.free_z_2:
                                 params.append('z_2')
