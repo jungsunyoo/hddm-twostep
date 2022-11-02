@@ -1346,21 +1346,38 @@ class HDDMBase(AccumulatorModel):
 
 
 
-            # wfpt_parents["sv"] = (
-            #     knodes["sv_bottom"]
-            #     if "sv" in self.include
-            #     else self.default_intervars["sv"]
-            # )
-            # wfpt_parents["sz"] = (
-            #     knodes["sz_bottom"]
-            #     if "sz" in self.include
-            #     else self.default_intervars["sz"]
-            # )
-            # wfpt_parents["st"] = (
-            #     knodes["st_bottom"]
-            #     if "st" in self.include
-            #     else self.default_intervars["st"]
-            # )
+            wfpt_parents["sv"] = (
+                knodes["sv_bottom"]
+                if "sv" in self.include
+                else self.default_intervars["sv"]
+            )
+            wfpt_parents["sz"] = (
+                knodes["sz_bottom"]
+                if "sz" in self.include
+                else self.default_intervars["sz"]
+            )
+            wfpt_parents["st"] = (
+                knodes["st_bottom"]
+                if "st" in self.include
+                else self.default_intervars["st"]
+            )
+
+            wfpt_parents["sv2"] = (
+                knodes["sv2_bottom"]
+                if "sv2" in self.include
+                else self.default_intervars["sv2"]
+            )
+            wfpt_parents["sz2"] = (
+                knodes["sz2_bottom"]
+                if "sz2" in self.include
+                else self.default_intervars["sz2"]
+            )
+            wfpt_parents["st2"] = (
+                knodes["st2_bottom"]
+                if "st2" in self.include
+                else self.default_intervars["st2"]
+            )
+
             wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
             wfpt_parents["z_2"] = knodes["z_2_bottom"] if "z_2" in self.include else 0.5
             print(wfpt_parents)
