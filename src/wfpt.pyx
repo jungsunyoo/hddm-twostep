@@ -1794,13 +1794,13 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
             # just update 1st-stage MF values if estimating
             if alpha != 100.00:
-                dtQ1 = qs_mb[s2s[i], responses2[i]] - qs_mf[s1s[i], responses1[i]]  # delta stage 1
-                qs_mf[s1s[i], responses1[i]] = qs_mf[
-                                                   s1s[i], responses1[i]] + alfa * dtQ1  # delta update for qmf
+                # dtQ1 = qs_mb[s2s[i], responses2[i]] - qs_mf[s1s[i], responses1[i]]  # delta stage 1
+                # qs_mf[s1s[i], responses1[i]] = qs_mf[
+                #                                    s1s[i], responses1[i]] + alfa * dtQ1  # delta update for qmf
             # if alpha2 != 100.00:
                 dtQ2 = feedbacks[i] - qs_mb[s2s[i], responses2[i]]  # delta stage 2
                 qs_mb[s2s[i], responses2[i]] = qs_mb[
-                                                   s2s[i], responses2[i]] + alfa2 * dtQ2  # delta update for qmb
+                                                   s2s[i], responses2[i]] + alfa * dtQ2  # delta update for qmb
             if lambda_ != 100.00:  # if using eligibility trace
                 qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[
                     i]] + lambda__ * dtQ2  # eligibility trace
@@ -1849,12 +1849,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     for a_ in range(2):
                         if (s_ is not s2s[i]) or (a_ is not responses2[i]):
                             # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
-                            qs_mb[s_, a_] *= (1 - gamma__)
+                            qs_mb[s_, a_] *= (1 - gamma_)
 
-                for s_ in range(comb(nstates, 2, exact=True)):
-                    for a_ in range(2):
-                        if (s_ is not s1s[i]) or (a_ is not responses1[i]):
-                            qs_mf[s_, a_] *= (1 - gamma_)
+                # for s_ in range(comb(nstates, 2, exact=True)):
+                #     for a_ in range(2):
+                #         if (s_ is not s1s[i]) or (a_ is not responses1[i]):
+                #             qs_mf[s_, a_] *= (1 - gamma_)
 
             # memory_weight_val *= (1 - gamma_) # forgetting for all
             # memory_weight_val[s2s[i], responses2[i]] += 1
