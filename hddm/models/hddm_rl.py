@@ -81,6 +81,8 @@ class HDDMrl(HDDM):
         self.model_unc_rep = kwargs.pop("model_unc_rep", False) # uncertainty of model : set or ind?
         self.mem_unc_rep = kwargs.pop("mem_unc_rep", False) # uncertainty of memory: set or ind?
 
+        self.unc_hybrid = kwargs.pop("mem_unc_rep", False) # whether to use hybrid
+
         self.choice_model = False # just a placeholder for compatibility
 
         self.wfpt_rl_class = WienerRL
@@ -742,6 +744,16 @@ class HDDMrl(HDDM):
         else:
             wfpt_parents['z_scaler_2'] = 100.00
 
+        if self.unc_hybrid:
+            if self.unc_hybrid == 'first': # bellman ind, uncertainty set
+                wfpt_parents['unc_hybrid'] = 1.00
+            elif self.unc_hybrid == 'second': # bellman set, uncertainty ind
+                wfpt_parents['unc_hybrid'] = 2.00
+            elif self.unc_hybrid == 'third': # regress both within ndt1
+                wfpt_parents['unc_hybrid'] = 3.00
+        else:
+            wfpt_parents['unc_hybrid'] = 0.00
+
         return wfpt_parents
 
     def _create_wfpt_knode(self, knodes):
@@ -986,7 +998,7 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
 #     )
 def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, gamma2, a,z,sz,t,st,v,sv, a_2, z_2, t_2,v_2,alpha2,
                                            two_stage, w, w2,z_scaler, z_scaler_2, z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, beta_ndt4,
-                              model_unc_rep, mem_unc_rep, st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
+                              model_unc_rep, mem_unc_rep, unc_hybrid, st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -1084,6 +1096,7 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
 
         model_unc_rep,
         mem_unc_rep,
+        unc_hybrid,
         st,
         p_outlier=p_outlier,
         **wp
