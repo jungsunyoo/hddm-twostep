@@ -1333,7 +1333,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double z_sigma, double z_sigma2,
                       double window_start, double window_size,
                       double beta_ndt, double beta_ndt2, double beta_ndt3, double beta_ndt4,
-                      double model_unc_rep, double mem_unc_rep, double unc_hybrid,
+                      double model_unc_rep, double mem_unc_rep, double unc_hybrid, double w_unc,
 
 
                       double st,
@@ -1366,6 +1366,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
     cdef double w_
     cdef double w2_
+    cdef double w_unc_
 
     # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
 
@@ -1418,6 +1419,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef double var2
     cdef double var_tr
     cdef double var_tr_
+    cdef double var_tr__
     cdef double var_val
     cdef double entropy1
     cdef double entropy2
@@ -1505,9 +1507,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if lambda_ != 100.00:
             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
         if w != 100.00:
-            w_ = (2.718281828459**w) / (1 + 2.718281828459**w_)
+            w_ = (2.718281828459**w) / (1 + 2.718281828459**w)
         if w2 != 100.00:
-            w2_ = (2.718281828459**w2) / (1 + 2.718281828459**w2_)
+            w2_ = (2.718281828459**w2) / (1 + 2.718281828459**w2)
+        if w_unc != 0.00:
+            w_unc_ = (2.718281828459 ** w_unc) / (1 + 2.718281828459 ** w_unc)
 
         # if beta_ndt != 100.00:
         #     beta_ndt = (2.718281828459**beta_ndt) / (1 + 2.718281828459**beta_ndt)
@@ -1591,7 +1595,23 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                                                   betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
                         # average
                         Tm /= 2
-
+                    elif unc_hybrid == 4.00:
+                        Tm = (1-w_unc) * np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
+                                       [mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]]) + \
+                             w_unc * np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                                  betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                                      betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
+                                       [1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                                      betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                                        mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                                  betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
 
 
                     if beta_ndt2 != 0.00: # if we estimate value with uncertainty
@@ -1714,7 +1734,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                             # 2. Get variance of beta (value)
                             # alpha_b = alphaf()
-                        elif unc_hybrid == 3.00: # both
+                        elif unc_hybrid == 3.00: # average of set and ind
                             # first, set
                             alpha_b = alphaf(beta_success_set[s1s[i]])
                             beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
@@ -1732,6 +1752,24 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                             var_tr += var_tr_
                             var_tr /= 2
+                        elif unc_hybrid == 4.00: # regressing both (additional parameter)
+                            alpha_b = alphaf(beta_success_set[s1s[i]])
+                            beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+                            var_tr_ = var_beta(alpha_b, beta_b)
+
+                            # then, add ind and then take the average
+                            alpha_b = alphaf(beta_success_ind[planets[0]])
+                            beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+                            var_tr__ = var_beta(alpha_b, beta_b)
+
+                            alpha_b = alphaf(beta_success_ind[planets[1]])
+                            beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+                            var_tr__ += var_beta(alpha_b, beta_b)
+                            var_tr__ /= 2
+
+                            var_tr = w_unc * var_tr_ + (1-w_unc) * var_tr__
+
+
 
 
                     else:

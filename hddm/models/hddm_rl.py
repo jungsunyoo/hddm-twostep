@@ -133,6 +133,18 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "w_unc",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.regress_ndt:
                 knodes.update(
                     self._create_family_normal_non_centered(
@@ -406,6 +418,18 @@ class HDDMrl(HDDM):
                 knodes.update(
                     self._create_family_normal(
                         "w",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
+            if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
+                knodes.update(
+                    self._create_family_normal(
+                        "w_unc",
                         value=0,
                         g_mu=0.2,
                         g_tau=3 ** -2,
@@ -749,10 +773,14 @@ class HDDMrl(HDDM):
                 wfpt_parents['unc_hybrid'] = 1.00
             elif self.unc_hybrid == 'second': # bellman set, uncertainty ind
                 wfpt_parents['unc_hybrid'] = 2.00
-            elif self.unc_hybrid == 'third': # regress both within ndt1
+            elif self.unc_hybrid == 'third': # regress the average of ind and set
                 wfpt_parents['unc_hybrid'] = 3.00
+            elif self.unc_hybrid == 'fourth': # regress both within ndt1
+                wfpt_parents['unc_hybrid'] = 4.00
+                wfpt_parents['w_unc'] = knodes['w_unc_bottom']
         else:
             wfpt_parents['unc_hybrid'] = 0.00
+            wfpt_parents['w_unc'] = 0.00
 
         return wfpt_parents
 
@@ -998,7 +1026,7 @@ def wienerRL_like_2step(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction,
 #     )
 def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_interaction, lambda_, alpha, pos_alpha, gamma, gamma2, a,z,sz,t,st,v,sv, a_2, z_2, t_2,v_2,alpha2,
                                            two_stage, w, w2,z_scaler, z_scaler_2, z_sigma,z_sigma2,window_start,window_size, beta_ndt, beta_ndt2, beta_ndt3, beta_ndt4,
-                              model_unc_rep, mem_unc_rep, unc_hybrid, st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
+                              model_unc_rep, mem_unc_rep, unc_hybrid, w_unc, st2, sv2, sz2, p_outlier=0): # regression ver2: bounded, a fixed to 1
 
     wiener_params = {
         "err": 1e-4,
@@ -1097,6 +1125,7 @@ def wienerRL_like_uncertainty(x, v0, v1, v2, v_interaction, z0, z1, z2, z_intera
         model_unc_rep,
         mem_unc_rep,
         unc_hybrid,
+        w_unc,
         st,
         p_outlier=p_outlier,
         **wp
