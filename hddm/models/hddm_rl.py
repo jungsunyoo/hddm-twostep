@@ -771,10 +771,13 @@ class HDDMrl(HDDM):
         if self.unc_hybrid:
             if self.unc_hybrid == 'first': # bellman ind, uncertainty set
                 wfpt_parents['unc_hybrid'] = 1.00
+                wfpt_parents['w_unc'] = 0.00
             elif self.unc_hybrid == 'second': # bellman set, uncertainty ind
                 wfpt_parents['unc_hybrid'] = 2.00
+                wfpt_parents['w_unc'] = 0.00
             elif self.unc_hybrid == 'third': # regress the average of ind and set
                 wfpt_parents['unc_hybrid'] = 3.00
+                wfpt_parents['w_unc'] = 0.00
             elif self.unc_hybrid == 'fourth': # regress both within ndt1
                 wfpt_parents['unc_hybrid'] = 4.00
                 wfpt_parents['w_unc'] = knodes['w_unc_bottom']
