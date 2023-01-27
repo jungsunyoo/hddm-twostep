@@ -951,10 +951,8 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                 dtQ2 = feedbacks[i] - qs_mb[s2s[i],responses2[i]] # delta stage 2
                 qs_mb[s2s[i], responses2[i]] = qs_mb[s2s[i],responses2[i]] + alfa2 * dtQ2 # delta update for qmb
                 if lambda_ != 100.00: # if using eligibility trace
-                    qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 # eligibility trace
+                    qs_mf[s1s[i], responses1[i]] = qs_mf[s1s[i], responses1[i]] + lambda__ * dtQ2 
 
-
-                # memory decay for unexperienced options in this trial
 
                 for s_ in range(nstates):
                     for a_ in range(2):

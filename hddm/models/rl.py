@@ -271,7 +271,7 @@ class Hrl(HDDM):
 
         wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.gamma else 100.00
         wfpt_parents["w"] = knodes["w_bottom"] if self.two_stage else 100.00
-        wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.0
+        wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.00
 
         if self.window_size is False:
             wfpt_parents['window_start'] = -1.00
