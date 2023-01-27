@@ -416,7 +416,7 @@ def RL_like(x, v, alpha, pos_alpha, z=0.5, p_outlier=0):
 #     )
 
 
-def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, gamma2, lambda_, w, window_start, window_size, z=0.5, z_2 = 0.5, p_outlier=0):
+def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, gamma2, lambda_, w, window_start, window_size, sv, sz, st, sv2, sz2, st2, z=0.5, z_2 = 0.5, p_outlier=0):
 
     # wiener_params = {
     #     "err": 1e-4,
@@ -494,7 +494,9 @@ def RL_like_2step(x, v, v_2, alpha, alpha2, two_stage, pos_alpha, gamma, gamma2,
         w,
         window_start,
         window_size,
+        sv, sz, st, sv2, sz2, st2, 
         p_outlier=p_outlier,
+        
         **wp
     )
 # RL = stochastic_from_dist("RL", RL_like)
