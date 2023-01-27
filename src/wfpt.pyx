@@ -772,12 +772,12 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                       double v_2,
                       double alpha2,
                       double w, double window_start, double window_size,
-                      double sv=0, 
-                      double sz=0, 
-                      double st=0, 
-                      double sv2=0, 
-                      double sz2=0, 
-                      double st2=0, 
+                      double sv, 
+                      double sz, 
+                      double st, 
+                      double sv2, 
+                      double sz2, 
+                      double st2, 
 
 
                       double err, int n_st=10, int n_sz=10, bint use_adaptive=1, double simps_err=1e-8,
