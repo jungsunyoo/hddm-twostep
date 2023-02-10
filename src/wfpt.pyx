@@ -1355,9 +1355,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             # Changes to be made as of 12-28: remove sigmoid and multiplication with a
                             if z_scaler != 100.00: # if using z_scaler but don't use w2 nor z0,z1,z2,z_int
                                 z_ = dtq_mb * z_scaler + z_sigma
-                                sig = 1 / (1 + exp(-z_))
+                                # sig = 1 / (1 + exp(-z_)) 
                                 # sig *= a
-                                # sig = z_
+                                sig = z_
                             else:
                                 sig = z # 0.5
 
@@ -1604,9 +1604,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             # sig = z_
 
                             z_2_ = dtq * z_scaler_2 + z_sigma2
-                            sig = 1 / (1 + exp(-z_2_))
+                            # sig = 1 / (1 + exp(-z_2_))
                             # sig *= a_2_
-                            # sig = z_2_
+                            sig = z_2_
                         # p = full_pdf(rt, v_, sv, a, sig * a,
                         #              sz, t_, st, err, n_st, n_sz, use_adaptive, simps_err)
                         p = full_pdf(rt, (dtq * v_2_), sv2, a_2_, sig, sz2, t_2_, st2, err, n_st, n_sz, use_adaptive,
