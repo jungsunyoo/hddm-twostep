@@ -28,6 +28,8 @@ class Hrl(HDDM):
         self.sep_gamma = kwargs.pop("sep_gamma", False)
         self.lambda_ = kwargs.pop("lambda_", False)  # added for two-step task
 
+        self.w = kwargs.pop("w", False)
+
         self.choice_model = kwargs.pop("choice_model", True)
 
         # below: unneecessary for choice model
@@ -108,6 +110,17 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.w: 
+                    knodes.update(
+                    self._create_family_normal_non_centered(
+                        "w",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
             if self.two_stage:
                 if self.sep_alpha:
                     knodes.update(
@@ -133,16 +146,16 @@ class Hrl(HDDM):
                             std_value=0.1,
                         )
                     )
-                knodes.update(
-                    self._create_family_normal_non_centered(
-                        "w",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
-                    )
+                # knodes.update(
+                #     self._create_family_normal_non_centered(
+                #         "w",
+                #         value=0,
+                #         g_mu=0.2,
+                #         g_tau=3 ** -2,
+                #         std_lower=1e-10,
+                #         std_upper=10,
+                #         std_value=0.1,
+                #     )
                 )
                 if self.lambda_:
                     knodes.update(
