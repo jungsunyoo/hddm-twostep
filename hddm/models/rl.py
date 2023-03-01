@@ -121,6 +121,7 @@ class Hrl(HDDM):
                         std_upper=10,
                         std_value=0.1,
                     )
+                )
             if self.two_stage:
                 if self.sep_alpha:
                     knodes.update(
@@ -156,7 +157,7 @@ class Hrl(HDDM):
                 #         std_upper=10,
                 #         std_value=0.1,
                 #     )
-                )
+                # )
                 if self.lambda_:
                     knodes.update(
                         self._create_family_normal_non_centered(
