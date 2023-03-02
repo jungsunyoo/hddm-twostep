@@ -208,6 +208,18 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
+            if self.w: 
+                knodes.update(
+                    self._create_family_normal(
+                        "w",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
+                    )
+                )
             if self.two_stage:
                 if self.sep_alpha:
                     knodes.update(
@@ -221,6 +233,7 @@ class Hrl(HDDM):
                             std_value=0.1,
                         )
                     )
+                
                 if self.sep_gamma:
                     knodes.update(
                         self._create_family_normal(
@@ -233,17 +246,7 @@ class Hrl(HDDM):
                             std_value=0.1,
                         )
                     )
-                knodes.update(
-                    self._create_family_normal(
-                        "w",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
-                    )
-                )
+
                 if self.lambda_:
                     knodes.update(
                         self._create_family_normal(
@@ -284,7 +287,7 @@ class Hrl(HDDM):
         wfpt_parents["z_2"] = knodes["z_2_bottom"] if "z_2" in self.include else 0.5
 
         wfpt_parents["gamma"] = knodes["gamma_bottom"] if self.gamma else 100.00
-        wfpt_parents["w"] = knodes["w_bottom"] if self.two_stage else 100.00
+        wfpt_parents["w"] = knodes["w_bottom"] if self.w else 100.00
         wfpt_parents["lambda_"] = knodes["lambda__bottom"] if self.lambda_ else 100.00
 
         if self.window_size is False:
