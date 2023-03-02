@@ -122,54 +122,54 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage:
-                if self.sep_alpha:
-                    knodes.update(
-                        self._create_family_normal_non_centered(
-                            "alpha2",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+            # if self.two_stage:
+            if self.sep_alpha:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "alpha2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
-                if self.sep_gamma:
-                    knodes.update(
-                        self._create_family_normal_non_centered(
-                            "gamma2",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+                )
+            if self.sep_gamma:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "gamma2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
-                # knodes.update(
-                #     self._create_family_normal_non_centered(
-                #         "w",
-                #         value=0,
-                #         g_mu=0.2,
-                #         g_tau=3 ** -2,
-                #         std_lower=1e-10,
-                #         std_upper=10,
-                #         std_value=0.1,
-                #     )
-                # )
-                if self.lambda_:
-                    knodes.update(
-                        self._create_family_normal_non_centered(
-                            "lambda_",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+                )
+            # knodes.update(
+            #     self._create_family_normal_non_centered(
+            #         "w",
+            #         value=0,
+            #         g_mu=0.2,
+            #         g_tau=3 ** -2,
+            #         std_lower=1e-10,
+            #         std_upper=10,
+            #         std_value=0.1,
+            #     )
+            # )
+            if self.lambda_:
+                knodes.update(
+                    self._create_family_normal_non_centered(
+                        "lambda_",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
+                )
 
             if self.dual:
                 knodes.update(
@@ -220,45 +220,45 @@ class Hrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage:
-                if self.sep_alpha:
-                    knodes.update(
-                        self._create_family_normal(
-                            "alpha2",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+            # if self.two_stage:
+            if self.sep_alpha:
+                knodes.update(
+                    self._create_family_normal(
+                        "alpha2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
+                )
                 
-                if self.sep_gamma:
-                    knodes.update(
-                        self._create_family_normal(
-                            "gamma2",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+            if self.sep_gamma:
+                knodes.update(
+                    self._create_family_normal(
+                        "gamma2",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
+                )
 
-                if self.lambda_:
-                    knodes.update(
-                        self._create_family_normal(
-                            "lambda_",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=0.1,
-                        )
+            if self.lambda_:
+                knodes.update(
+                    self._create_family_normal(
+                        "lambda_",
+                        value=0,
+                        g_mu=0.2,
+                        g_tau=3 ** -2,
+                        std_lower=1e-10,
+                        std_upper=10,
+                        std_value=0.1,
                     )
+                )
             if self.dual:
                 knodes.update(
                     self._create_family_normal(
@@ -280,8 +280,8 @@ class Hrl(HDDM):
         wfpt_parents["v"] = knodes["v_bottom"]
         wfpt_parents["v_2"] = knodes["v_2_bottom"] if self.two_stage else 100.00
         wfpt_parents["alpha"] = knodes["alpha_bottom"] if self.alpha else 100.00
-        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.sep_alpha and self.two_stage else 100.00
-        wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.sep_gamma and self.two_stage else 100.00
+        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.sep_alpha else 100.00
+        wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.sep_gamma else 100.00
         wfpt_parents["pos_alpha"] = knodes["pos_alpha_bottom"] if self.dual else 100.00
         wfpt_parents["z"] = knodes["z_bottom"] if "z" in self.include else 0.5
         wfpt_parents["z_2"] = knodes["z_2_bottom"] if "z_2" in self.include else 0.5

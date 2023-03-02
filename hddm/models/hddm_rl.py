@@ -231,7 +231,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage and self.sep_alpha:
+            if self.sep_alpha:
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "alpha2",
@@ -255,7 +255,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage and self.sep_gamma:
+            if self.sep_gamma:
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "gamma2",
@@ -400,7 +400,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage and self.sep_alpha:
+            if self.sep_alpha:
                 knodes.update(
                     self._create_family_normal(
                         "alpha2",
@@ -518,18 +518,6 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage and self.sep_gamma:
-                knodes.update(
-                    self._create_family_normal(
-                        "gamma2",
-                        value=0,
-                        g_mu=0.2,
-                        g_tau=3 ** -2,
-                        std_lower=1e-10,
-                        std_upper=10,
-                        std_value=0.1,
-                    )
-                )
 
             if self.gamma:
                 knodes.update(
@@ -543,7 +531,7 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if self.two_stage and self.sep_gamma:
+            if self.sep_gamma:
                 knodes.update(
                     self._create_family_normal(
                         "gamma2",
@@ -647,8 +635,8 @@ class HDDMrl(HDDM):
         wfpt_parents["alpha"] = knodes["alpha_bottom"] if self.alpha else 100.00
         wfpt_parents["pos_alpha"] = knodes["pos_alpha_bottom"] if self.dual else 100.00
 
-        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.two_stage and self.sep_alpha else 100.00
-        wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.two_stage and self.sep_gamma else 100.00
+        wfpt_parents["alpha2"] = knodes["alpha2_bottom"] if self.sep_alpha else 100.00
+        wfpt_parents["gamma2"] = knodes["gamma2_bottom"] if self.sep_gamma else 100.00
         # if not self.v_reg) and (not self.v_sep_q):
         if not self.v_reg:
             if self.w:
