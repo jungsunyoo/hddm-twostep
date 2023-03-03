@@ -912,7 +912,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if lambda_ != 100.00:
             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
         if w != 100.00:
-            w = (2.718281828459**w) / (1 + 2.718281828459**w)
+            w_ = (2.718281828459**w) / (1 + 2.718281828459**w)
         if w2 != 100.00:
             w2 = (2.718281828459**w2) / (1 + 2.718281828459**w2)
 
@@ -949,8 +949,10 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
                     # dtq = qs[1] - qs[0]
-                    dtq_mb = Qmb[0] - Qmb[1]
-                    dtq_mf = qs_mf[s1s[i],0] - qs_mf[s1s[i],1]
+                    dtq_mb = Qmb[1] - Qmb[0]
+                    dtq_mf = qs_mf[s1s[i],1] - qs_mf[s1s[i],0]
+
+                    
                     if v == 100.00: # if v_reg
                         # Transform regression parameters so that >0
                         # alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
@@ -970,7 +972,7 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             v_ = v0 + (dtq_mf * v2) # just qmf
                     else: # if don't use v_reg:
                         if v_qval == 0: # use both qmb and qmf
-                            qs = w * Qmb + (1-w) * qs_mf[s1s[i],:] # Update for 1st trial
+                            qs = w_ * Qmb + (1-w_) * qs_mf[s1s[i],:] # Update for 1st trial
                             dtq = qs[1] - qs[0]
                             v_ = dtq * v
                         elif v_qval == 1:
@@ -993,12 +995,12 @@ def wiener_like_rlddm_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             z_ = z0 + (dtq_mf * z2) # just qmf
                         sig = 1/(1+np.exp(-z_))
                     else: # if don't use z_reg:
-                        qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
-                        dtq = qs[1] - qs[0]
-                        z_ = dtq * z_scaler
-                        sig = 1 / (1 + np.exp(-z_))
+                        # qs = w2 * Qmb + (1-w2) * qs_mf[s1s[i],:] # Update for 1st trial
+                        # dtq = qs[1] - qs[0]
+                        # z_ = dtq * z_scaler
+                        # sig = 1 / (1 + np.exp(-z_))
                         # z_ = dtq *
-                        # sig = z
+                        sig = z
 
 
                     rt = x1s[i]

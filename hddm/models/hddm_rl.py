@@ -70,6 +70,8 @@ class HDDMrl(HDDM):
 
         self.free_z_2 = kwargs.pop("free_z_2",False) # free parameter for z_2
 
+        self.w2 = kwargs.pop("w2",False)
+
         self.window_start = kwargs.pop("window_start", False)
         self.window_size = kwargs.pop("window_size", False)
         # print(self.window_start, self.window_size)
@@ -123,7 +125,8 @@ class HDDMrl(HDDM):
                     )
                 )
 
-            if (not self.z_reg) and (not self.z_sep_q):
+            #if (not self.z_reg) and (not self.z_sep_q):
+            if self.w2:
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "w2",
@@ -355,7 +358,8 @@ class HDDMrl(HDDM):
                         std_value=0.1,
                     )
                 )
-            if (not self.z_reg) and (not self.z_sep_q):
+            if self.w2:
+            # if (not self.z_reg) and (not self.z_sep_q):
                 knodes.update(
                     self._create_family_normal(
                         "w2",
