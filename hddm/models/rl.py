@@ -95,7 +95,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.gamma:
@@ -107,7 +107,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.w: 
@@ -119,7 +119,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # if self.two_stage:
@@ -132,7 +132,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.sep_gamma:
@@ -144,7 +144,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # knodes.update(
@@ -167,7 +167,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -180,7 +180,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
         else:
@@ -193,7 +193,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.gamma:
@@ -205,7 +205,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.w: 
@@ -217,7 +217,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # if self.two_stage:
@@ -230,7 +230,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
                 
@@ -243,7 +243,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -256,7 +256,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.dual:
@@ -268,7 +268,7 @@ class Hrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
