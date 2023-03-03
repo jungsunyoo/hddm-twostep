@@ -115,7 +115,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -130,7 +130,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
@@ -142,7 +142,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt:
@@ -154,7 +154,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt2:
@@ -166,7 +166,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt3:
@@ -178,7 +178,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt4:
@@ -190,7 +190,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # if (not self.z_reg) and (not self.z_sep_q):
@@ -204,7 +204,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
                 if self.z_scaler:
@@ -216,7 +216,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
             if self.dual:
@@ -228,7 +228,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.sep_alpha:
@@ -240,7 +240,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )            
             if self.gamma:
@@ -252,7 +252,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.sep_gamma:
@@ -264,7 +264,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.lambda_:
@@ -276,7 +276,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -290,7 +290,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
                 # if self.v_sep_q:
@@ -304,7 +304,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
                     # else:
@@ -317,7 +317,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
 
@@ -330,7 +330,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
             if self.z_reg:
@@ -381,7 +381,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -397,7 +397,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.sep_alpha:
@@ -409,7 +409,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # if (not self.v_reg) and (not self.v_sep_q):
@@ -423,7 +423,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
@@ -435,7 +435,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             # if (not self.z_reg) and (not self.z_sep_q):
@@ -449,7 +449,7 @@ class HDDMrl(HDDM):
                             g_tau=3 ** -2,
                             std_lower=1e-10,
                             std_upper=10,
-                            std_value=0.1,
+                            std_value=1,
                         )
                     )
                 if self.z_scaler:
@@ -467,7 +467,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt2:
@@ -479,7 +479,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt3:
@@ -491,7 +491,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.regress_ndt4:
@@ -503,7 +503,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.dual:
@@ -515,7 +515,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 
@@ -528,7 +528,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.sep_gamma:
@@ -540,7 +540,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
             if self.lambda_:
@@ -552,7 +552,7 @@ class HDDMrl(HDDM):
                         g_tau=3 ** -2,
                         std_lower=1e-10,
                         std_upper=10,
-                        std_value=0.1,
+                        std_value=1,
                     )
                 )
 

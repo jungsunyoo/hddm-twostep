@@ -887,7 +887,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
         if lambda_ != 100.00:
             lambda__ = (2.718281828459**lambda_) / (1 + 2.718281828459**lambda_)
         if w != 100.00:
-            w = (2.718281828459**w) / (1 + 2.718281828459**w)
+            w_ = (2.718281828459**w) / (1 + 2.718281828459**w)
 
         # loop through all trials in current condition
         for i in range(0, s_size):
@@ -899,7 +899,7 @@ def wiener_like_rl_2step(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     planets = state_combinations[s1s[i]]
                     Qmb = np.dot(Tm, [np.max(qs_mb[planets[0],:]), np.max(qs_mb[planets[1],:])])
 
-                    qs = w * Qmb + (1 - w) * qs_mf[s1s[i], :]  # Update for 1st trial
+                    qs = w_ * Qmb + (1 - w_) * qs_mf[s1s[i], :]  # Update for 1st trial
                     drift = (qs[1] - qs[0]) * v
 
                     if drift == 0:
