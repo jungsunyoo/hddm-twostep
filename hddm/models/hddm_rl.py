@@ -531,8 +531,10 @@ class HDDMrl(HDDM):
         else:
             wfpt_parents["w"] = 100.00
         if (not self.z_reg) and (not self.z_sep_q):
-            wfpt_parents["w2"] = knodes["w2_bottom"]
-            wfpt_parents["z_scaler"] = knodes["z_scaler_bottom"]
+            # wfpt_parents["w2"] = knodes["w2_bottom"]
+            wfpt_parents["w2"] = 100.00
+            # wfpt_parents["z_scaler"] = knodes["z_scaler_bottom"]
+            wfpt_parents["z_scaler"] = 100.00
         else:
             wfpt_parents["w2"] = 100.00
             wfpt_parents["z_scaler"] = 100.00
