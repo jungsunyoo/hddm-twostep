@@ -1222,10 +1222,17 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     # Tm = np.array([[transition_priors[s1s[i]], 1-transition_priors[s1s[i]]], [1 - transition_priors[s1s[i]], transition_priors[s1s[i]]]])
                     if unc_hybrid == 0.00: # if don't use hybrid
                         if model_unc_rep == 1: # if ind
+                            #// Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                            #//                 mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
+                            #//                [mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                            #//                 mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+
                             Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
-                                            mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
-                                           [mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
-                                            mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+                                            1 - mode_beta(alphaf(beta_success_ind[planets[0]]), betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                                           [1 - mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                                            mode_beta(alphaf(beta_success_ind[planets[1]]), betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]])
+
+
                         elif model_unc_rep == -1: # if set
                             Tm = np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
                                             1-mode_beta(alphaf(beta_success_set[s1s[i]]), betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
@@ -1236,12 +1243,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     elif unc_hybrid == 1.00: # bellman ind, uncertainty set
                         Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
                                                   betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
-                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
-                                       [mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                                       [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
                                                   betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[0]]),
-                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]])
                     elif unc_hybrid == 2.00: # bellman set, uncertainty ind:
                         Tm = np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
                                                   betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
@@ -1255,12 +1262,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         # ind
                         Tm = np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
                                                   betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
-                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
-                                       [mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                                       [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
                                                   betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[0]]),
-                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]])
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]])
                         # set
                         Tm += np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
                                                   betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
@@ -1275,12 +1282,12 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                     elif unc_hybrid == 4.00:
                         Tm = (1-w_unc_) * np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
                                                   betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
-                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))],
-                                       [mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                                       [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
                                                   betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
-                                        mode_beta(alphaf(beta_success_ind[planets[0]]),
-                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))]]) + \
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]]) + \
                              w_unc_ * np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
                                                   betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
                                         1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
