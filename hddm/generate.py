@@ -10,6 +10,31 @@ from scipy.special import comb
 import itertools
 from numpy import matlib
 
+# For beta updates (added 23-05-17)
+
+def alphaf(k):
+    return k+1
+
+def betaf(n, k):
+    return n-k+1
+
+def var_beta(a,b):
+    return (a*b) / (((a+b)**2)*(a+b+1))
+
+def exp_beta(a, b):
+    return a / (a+b)
+
+def mode_beta(a, b): # when a, b > 1
+    return (a-1) / (a + b -2)
+
+# def softmax_stable(np.ndarray[double, ndim=1] x):
+#     return(exp(x - np.max(x)) / exp(x - np.max(x)).sum())
+
+
+
+
+
+
 def gen_single_params_set(include=()):
     """Returns a dict of DDM parameters with random values for a singel conditin
     the function is used by gen_rand_params.
@@ -1018,6 +1043,491 @@ def posterior_predictive_check(
                 df.loc[j, "rt2"] = data2.rt[0]
             ndt_counter_set[s1s[j], 0] += 1
             ndt_counter_ind[s2s[j], 0] += 1
+
+            dtQ1 = qs_mb[s2s[j], actual_responses2[j]] - qs_mf[
+                s1s[j], actual_responses1[j]]  # delta stage 1
+            qs_mf[s1s[j], actual_responses1[j]] = qs_mf[s1s[j], actual_responses1[
+                j]] + alfa * dtQ1  # delta update for qmf
+
+            dtQ2 = feedback[j] - qs_mb[s2s[j], actual_responses2[j]]  # delta stage 2
+            qs_mb[s2s[j], actual_responses2[j]] = qs_mb[s2s[j], actual_responses2[
+                j]] + alfa2 * dtQ2  # delta update for qmb
+            if lambda_:  # if using eligibility trace
+                qs_mf[s1s[j], actual_responses1[j]] = qs_mf[s1s[j], actual_responses1[
+                    j]] + lambda__ * dtQ2  # eligibility trace
+
+            # memory decay for unexperienced options in this trial
+            if gamma:
+                for s_ in range(nstates):
+                    for a_ in range(2):
+                        if (s_ is not s2s[j]) or (a_ is not actual_responses2[j]):
+                            # qs_mb[s_, a_] = qs_mb[s_, a_] * (1-gamma)
+                            qs_mb[s_, a_] *= (1 - gamma_)
+
+                for s_ in range(comb(nstates, 2, exact=True)):
+                    for a_ in range(2):
+                        if (s_ is not s1s[j]) or (a_ is not actual_responses1[j]):
+                            qs_mf[s_, a_] *= (1 - gamma_)
+
+        all_data.append(df)
+    all_data = pd.concat(all_data, axis=0)
+    all_data = all_data[
+        [
+            "q_up_1",
+            "q_low_1",
+            "q_up_2",
+            "q_low_2",
+            "sim_drift_1",
+            "sim_drift_2",
+            "sim_bias_1",
+            "sim_bias_2",
+            "sim_ndt_1",
+
+            "response1",
+            "response2",
+            "actual_response1",
+            "actual_response2",
+            "rt1",
+            "rt2",
+            "actual_rt1",
+            "actual_rt2",
+            "subj_idx",
+            "split_by",
+            "trial",
+        ]
+    ]
+
+    return all_data
+
+# JY added on 2023-05-17 (for the final model, dynamic RLDDM)
+# this function is to see if behavioral data (choice, rt) can be replicated given exactly same experimental structure
+# (empirical data should be given)
+def posterior_predictive_check_dynamic(
+        # x_train,  # this is the dataframe of data of the given participant
+        x,
+        # fold,
+        size=1,
+        p_upper=1,
+        p_lower=0,
+        # z=0.5,
+        q_init=0.5,
+        # pos_alpha=float("nan"),
+        # subjs=1,
+        split_by=0,
+        mu_upper=1,
+        mu_lower=0,
+        sd_upper=0.1,
+        sd_lower=0.1,
+        binary_outcome=True,
+        n_simulation=1, # number of simulations per trial
+        # uncertainty=False,
+        **kwargs
+):
+    # Receiving behavioral data
+    total_x_len = len(x)  # total length of data
+
+    # nstates = max(x_train["state2"].values.astype(int)) + 1
+
+    # subjs = len(np.unique(x["subj_idx"]))
+    # q = x["q_init"].iloc[0]
+
+    actual_rt1 = x["rt1"].values
+    actual_rt2 = x["rt2"].values
+    actual_responses1 = x["response1"].values.astype(int)
+    actual_responses2 = x["response2"].values.astype(int)
+    s1s = x["state1"].values.astype(int)
+    s2s = x["state2"].values.astype(int)
+
+
+    q = x["q_init"].iloc[0]
+    feedback = x["feedback"].values.astype(float)
+    split_by = x["split_by"].values.astype(int)
+
+    # JY added for two-step tasks on 2021-12-05
+    nstates = max(x["state2"].values.astype(int)) + 1
+
+    subjs = len(np.unique(x["subj_idx"]))
+
+    # Receiving all keyword arguments
+    a = kwargs.pop("a", 1) # return 1 as default (if not otherwise specified)
+    a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
+    t = kwargs.pop("t", False)
+    t_2 = kwargs.pop("t_2", False)
+    # v0 = kwargs.pop("v0", False)
+    # v1 = kwargs.pop("v1", False)
+    # v2 = kwargs.pop("v2", False)
+    # v_interaction = kwargs.pop("v_interaction", False)
+    # v_2 = kwargs.pop("v_2", False)
+    z = kwargs.pop("z", 0.5) # return 0.5 as default (if not otherwise specified)
+    # z0 = kwargs.pop("z0", False)
+    # z1 = kwargs.pop("z1", False)
+    # z2 = kwargs.pop("z2", False)
+    # z_interaction = kwargs.pop("z_interaction", False)
+    z_2 = kwargs.pop("z_2", 0.5)
+    lambda_ = kwargs.pop("lambda_", False)  # float("nan")
+    gamma = kwargs.pop("gamma", False)
+    w_unc = kwargs.pop("w_unc", False)
+    # w = kwargs.pop("w", False)
+    # w2 = kwargs.pop("w2", False)
+    scaler = kwargs.pop("scaler", False)
+    scaler2 = kwargs.pop("scaler_2", False)
+    # z_scaler = kwargs.pop("z_scaler", False)
+    
+    pos_alpha = kwargs.pop("pos_alpha", False)
+    alpha = kwargs.pop("alpha", False)
+    alpha2 = kwargs.pop("alpha2", False)
+    beta_ndt = kwargs.pop("beta_ndt", False)
+    # beta_ndt2 = kwargs.pop("beta_ndt2", False)
+    all_data = []
+
+    tg = t
+    ag = a
+    tg2 = t_2
+    ag2 = a_2
+
+    alphag = alpha
+    alphag2 = alpha2
+
+    pos_alphag = pos_alpha
+    scalerg = scaler
+    scalerg2 = scaler2
+    z_scalerg = z_scaler
+
+    Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
+
+    ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
+    ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
+
+    for s in range(0, subjs):
+        # if
+        if t: 
+            t = (
+                np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+                if subjs > 1
+                else tg
+            )
+        if a: 
+            a = (
+                np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+                if subjs > 1
+                else ag
+            )
+        if alpha: 
+            alpha = (
+                np.minimum(
+                    np.minimum(
+                        np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
+                        alphag + alphag,
+                    ),
+                    1,
+                )
+                if subjs > 1
+                else alphag
+            )
+        if scaler: 
+            scaler = (
+                np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
+            )
+        if z_scaler: 
+            z_scaler = (
+                np.random.normal(loc=z_scalerg, scale=0.25, size=1) if subjs > 1 else z_scalerg
+            )
+
+        if np.isnan(pos_alpha):
+            pos_alfa = alpha
+        else:
+            pos_alfa = (
+                np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
+                if subjs > 1
+                else pos_alphag
+            )
+        # n = size
+        n = len(x)
+        # if two_stage:
+        if t_2:
+            t_2 = (
+                np.maximum(0.05, np.random.normal(loc=tg2, scale=0.05, size=1))
+                if subjs > 1
+                else tg2
+            )
+        if a_2:
+            a_2 = (
+                np.maximum(0.05, np.random.normal(loc=ag2, scale=0.15, size=1))
+                if subjs > 1
+                else ag2
+            )
+        if alpha2:
+            alpha2 = (
+                np.minimum(
+                    np.minimum(
+                        np.maximum(0.001, np.random.normal(loc=alphag2, scale=0.05, size=1)),
+                        alphag + alphag,
+                    ),
+                    1,
+                )
+                if subjs > 1
+                else alphag2
+            )
+        if scaler2:
+            scaler2 = (
+                np.random.normal(loc=scalerg2, scale=0.25, size=1) if subjs > 1 else scalerg2
+            )
+
+
+        qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
+        qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
+
+        if alpha:
+            alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+        if gamma:
+            gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
+        if alpha2:
+            alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
+        else:
+            alfa2 = alfa
+        if lambda_:
+            lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
+        # if w:
+        #     w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
+        if w_unc:
+            w_unc_ = (2.718281828459 ** w_unc) / (1 + 2.718281828459 ** w_unc)
+        # if w2:
+        #     w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
+
+        state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
+
+
+        n = size
+        q_up = np.tile([q_init], n)
+        q_low = np.tile([q_init], n)
+        response1 = np.tile([0.5], n)
+        response2 = np.tile([0.5], n)
+        feedback = np.tile([0.5], n)
+        rt1 = np.tile([0], n)
+        rt2 = np.tile([0], n)
+        if binary_outcome:
+            rew_up = np.random.binomial(1, p_upper, n).astype(float)
+            rew_low = np.random.binomial(1, p_lower, n).astype(float)
+        else:
+            rew_up = np.random.normal(mu_upper, sd_upper, n)
+            rew_low = np.random.normal(mu_lower, sd_lower, n)
+        sim_drift = np.tile([0], n)
+        sim_bias = np.tile([0], n)
+        # sim_threshold = np.tile([0], n)
+        sim_ndt = np.tile([0], n)
+        subj_idx = np.tile([s], n)
+        actual_response=  np.tile([0], n)
+        actual_rt =  np.tile([0], n)
+
+        # JY added on 2023-05-17
+        beta_n_ind = np.ones((nstates, 1)) * 2
+        beta_success_ind = np.ones((nstates,1))
+        beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
+        beta_success_set = np.ones((comb(nstates,2,exact=True),1))
+
+        d = {
+            "q_up_1": q_up,
+            "q_low_1": q_low,
+            "q_up_2": q_up,
+            "q_low_2": q_low,
+            "sim_drift_1": sim_drift,
+            "sim_drift_2": sim_drift,
+            "sim_bias_1": sim_bias,
+            "sim_bias_2": sim_bias,
+            # "sim_threshold_1": sim_threshold,
+            # "sim_threshold_2": sim_threshold, # exclude because this is not a function of experience
+            "sim_ndt_1": sim_ndt,
+            # "sim_ndt_2": sim_ndt,
+            # "rew_up": rew_up,
+            # "rew_low": rew_low,
+            "response1": response1,
+            "response2": response2,
+
+            "actual_response1": actual_response,
+            "actual_response2": actual_response,
+
+            "rt1": rt1,
+            "rt2": rt2,
+
+            "actual_rt1": actual_rt,
+            "actual_rt2": actual_rt,
+            # "feedback": feedback,
+            "subj_idx": subj_idx,
+            "split_by": split_by,
+            "trial": 1,
+        }
+        df = pd.DataFrame(data=d)
+        df = df[
+            [
+                "q_up_1",
+                "q_low_1",
+                "q_up_2",
+                "q_low_2",
+                "sim_drift_1",
+                "sim_drift_2",
+                "sim_bias_1",
+                "sim_bias_2",
+                "sim_ndt_1",
+                # "sim_ndt_2",
+                # "rew_up",
+                # "rew_low",
+                "response1",
+                "response2",
+                "actual_response1",
+                "actual_response2",
+                "rt1",
+                "rt2",
+                "actual_rt1",
+                "actual_rt2",
+                "subj_idx",
+                "split_by",
+                "trial",
+            ]
+        ]
+        for j in range(total_x_len):  # loop over total data
+            df.loc[j, "trial"] = j + 1
+
+            # FIRST STAGE
+            planets = state_combinations[s1s[j]]
+
+            # dtq = qs[1] - qs[0]
+
+            # JY added on 2023-05-17 for dynamic RLDDM 
+
+            Tm = (1-w_unc_) * np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                        betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                            1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                        betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                            [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                            mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]]) + \
+                    w_unc_ * np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                        betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                            1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                            betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
+                            [1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                            betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
+                            mode_beta(alphaf(beta_success_set[s1s[i]]),
+                                        betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+
+            alpha_b = alphaf(beta_success_set[s1s[i]])
+            beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+            var_tr_ = var_beta(alpha_b, beta_b)
+
+            # then, add ind and then take the average
+            alpha_b = alphaf(beta_success_ind[planets[0]])
+            beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+            var_tr__ = var_beta(alpha_b, beta_b)
+
+            alpha_b = alphaf(beta_success_ind[planets[1]])
+            beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+            var_tr__ += var_beta(alpha_b, beta_b)
+            var_tr__ /= 2
+
+            var_tr = w_unc_ * var_tr_ + (1-w_unc_) * var_tr__
+
+            t_ = t + beta_ndt * var_tr
+                # (beta_ndt2 * var_val) + \
+                # (beta_ndt3 * memory_weight_tr) + \
+                # (beta_ndt4 * total_memory_weight_val)
+
+
+
+            Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+
+            dtq_mb = Qmb[1] - Qmb[0]
+            dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
+
+
+
+
+
+
+
+
+            # if w: # use w scaling for drift rate
+            #     qs = w * Qmb + (1 - w) * qs_mf[s1s[j], :]  # Update for 1st trial
+            #     dtq = qs[1] - qs[0]
+            #     v_ = dtq * scaler
+            # if w2: # use w scaling for starting point
+            #     qs = w2 * Qmb + (1 - w2) * qs_mf[s1s[j], :]  # Update for 1st trial
+            #     dtq = qs[1] - qs[0]
+            #     z_ = dtq * z_scaler
+            #     sig = 1 / (1 + np.exp(-z_))
+
+            # if v0 or v1 or v2 or v_interaction:
+            #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+            # # else:
+            # #     v_ = v
+            # if z0 or z1 or z2 or z_interaction:
+            #     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+            #     sig = 1 / (1 + np.exp(-z_))
+            # else:
+            #     sig  = z
+            # if beta_ndt or beta_ndt2:
+            #     t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[j], 0]) * beta_ndt2 + t
+            # else:
+            #     t_ = t
+            # if v1 and not v2: # only simulate MB Q VALUES
+            #     df.loc[j, "q_up_1"] = Qmb[1]
+            #     df.loc[j, "q_low_1"] = Qmb[0]
+            # elif v2 and not v1: # only simulate MF Q VALUES
+            #     df.loc[j, "q_up_1"] = qs_mf[s1s[j], 1]
+            #     df.loc[j, "q_low_1"] = qs_mf[s1s[j], 0]
+            # else:
+            #     raise AssertionError("Either specify MB or MF")
+
+
+
+            df.loc[j, "sim_drift_1"] = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
+            df.loc[j, "sim_bias_1"] = z
+            df.loc[j, "sim_ndt_1"] = t_
+            df.loc[j, "actual_rt1"] = actual_rt1[j]
+            df.loc[j, "actual_response1"] = actual_responses1[j]
+            data1, params1 = hddm.generate.gen_rand_data(
+                {"a": a, "t": t_, "v": v_, "z": z},
+                subjs=1, size=n_simulation
+                # size=1000, subjs=1  # make 1,000 simulations?
+            )
+            df.loc[j, "response1"] = data1.response[0]
+            df.loc[j, "rt1"] = data1.rt[0]
+            # SECOND STAGE
+            if t_2: # if second stage; whether or not other parameters are used, t_2 is always used if 2nd stage is estimated
+                qs = qs_mb[s2s[j], :]
+                dtq = qs[1] - qs[0]
+                # v_ = dtq * v_2
+                v_ = dtq * scaler2
+
+                sig = z_2
+
+                df.loc[j, "q_up_2"] = qs[1]
+                df.loc[j, "q_low_2"] = qs[0]
+                df.loc[j, "sim_drift_2"] = v_  # (df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
+                df.loc[j, "sim_bias_2"] = sig
+                # df.loc[j, "sim_ndt_1"] = t_
+                df.loc[j, "actual_rt2"] = actual_rt2[j]
+                df.loc[j, "actual_response2"] = actual_responses2[j]
+
+                data2, params2 = hddm.generate.gen_rand_data(
+                    {"a": a_2, "t": t_2, "v": v_, "z": sig},
+                    subjs=1, size=n_simulation
+                    # size=1000, subjs=1  # make 1,000 simulations?
+                )
+                df.loc[j, "response2"] = data2.response[0]
+                df.loc[j, "rt2"] = data2.rt[0]
+            ndt_counter_set[s1s[j], 0] += 1
+            ndt_counter_ind[s2s[j], 0] += 1
+
+            # (ADDED 2023-05-17) Updating common/rare transition uncertainty (beta parameters)
+            planets = state_combinations[s1s[j]]
+            
+            chosen_state = planets[actual_responses1[j]]
+            beta_n_ind[chosen_state] += 1
+            beta_n_set[s1s[j]] += 1
+            if chosen_state == s2s[j]:
+                beta_success_ind[chosen_state] += 1
+                beta_success_set[s1s[j]] += 1
 
             dtQ1 = qs_mb[s2s[j], actual_responses2[j]] - qs_mf[
                 s1s[j], actual_responses1[j]]  # delta stage 1
