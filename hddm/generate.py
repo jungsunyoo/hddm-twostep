@@ -1337,9 +1337,9 @@ def posterior_predictive_check_dynamic(
             # "sim_threshold_1": sim_threshold,
             # "sim_threshold_2": sim_threshold, # exclude because this is not a function of experience
             "sim_ndt_1": sim_ndt,
-            # "sim_ndt_2": sim_ndt,
-            # "rew_up": rew_up,
-            # "rew_low": rew_low,
+            "sim_ndt_2": sim_ndt,
+            "rew_up": rew_up,
+            "rew_low": rew_low,
             "response1": response1,
             "response2": response2,
 
@@ -1368,9 +1368,9 @@ def posterior_predictive_check_dynamic(
                 "sim_bias_1",
                 "sim_bias_2",
                 "sim_ndt_1",
-                # "sim_ndt_2",
-                # "rew_up",
-                # "rew_low",
+                "sim_ndt_2",
+                "rew_up",
+                "rew_low",
                 "response1",
                 "response2",
                 "actual_response1",
@@ -1479,7 +1479,8 @@ def posterior_predictive_check_dynamic(
             #     raise AssertionError("Either specify MB or MF")
 
 
-
+            df.loc[j, "q_up_1"] = dtq_mb[1]
+            df.loc[j, "q_low_1"] = dtq_mb[0]
             df.loc[j, "sim_drift_1"] = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
             df.loc[j, "sim_bias_1"] = z
             df.loc[j, "sim_ndt_1"] = t_
@@ -1505,7 +1506,7 @@ def posterior_predictive_check_dynamic(
                 df.loc[j, "q_low_2"] = qs[0]
                 df.loc[j, "sim_drift_2"] = v_  # (df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
                 df.loc[j, "sim_bias_2"] = sig
-                # df.loc[j, "sim_ndt_1"] = t_
+                df.loc[j, "sim_ndt_1"] = t_
                 df.loc[j, "actual_rt2"] = actual_rt2[j]
                 df.loc[j, "actual_response2"] = actual_responses2[j]
 
@@ -1567,7 +1568,9 @@ def posterior_predictive_check_dynamic(
             "sim_bias_1",
             "sim_bias_2",
             "sim_ndt_1",
-
+            "sim_ndt_2",
+            "rew_up",
+            "rew_low",
             "response1",
             "response2",
             "actual_response1",
