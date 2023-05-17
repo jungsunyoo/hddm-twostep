@@ -1325,6 +1325,7 @@ def posterior_predictive_check_dynamic(
         beta_success_ind = np.ones((nstates,1))
         beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
         beta_success_set = np.ones((comb(nstates,2,exact=True),1))
+        trial = np.tile([0], n)
 
         d = {
             "q_up_1": q_up,
@@ -1355,7 +1356,7 @@ def posterior_predictive_check_dynamic(
             # "feedback": feedback,
             "subj_idx": subj_idx,
             "split_by": split_by,
-            "trial": 1,
+            "trial": trial,
         }
         df = pd.DataFrame(data=d)
         df = df[
