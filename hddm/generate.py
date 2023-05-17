@@ -1412,7 +1412,7 @@ def posterior_predictive_check_dynamic(
                                             betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])),
                             mode_beta(alphaf(beta_success_set[s1s[j]]),
                                         betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]]))]])
-
+            Tm = np.squeeze(Tm)
             alpha_b = alphaf(beta_success_set[s1s[j]])
             beta_b = betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])
             var_tr_ = var_beta(alpha_b, beta_b)
@@ -1435,8 +1435,9 @@ def posterior_predictive_check_dynamic(
                 # (beta_ndt4 * total_memory_weight_val)
 
 
-
             Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+
+            # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
 
             dtq_mb = Qmb[1] - Qmb[0]
             dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
