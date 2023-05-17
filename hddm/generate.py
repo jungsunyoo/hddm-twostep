@@ -1297,7 +1297,8 @@ def posterior_predictive_check_dynamic(
         state_combinations = np.array(list(itertools.combinations(np.arange(nstates), 2)))
 
 
-        n = size
+        # n = size
+        n = total_x_len
         q_up = np.tile([q_init], n)
         q_low = np.tile([q_init], n)
         response1 = np.tile([0.5], n)
@@ -1354,7 +1355,7 @@ def posterior_predictive_check_dynamic(
             # "feedback": feedback,
             "subj_idx": subj_idx,
             "split_by": split_by,
-            # "trial": 1,
+            "trial": 1,
         }
         df = pd.DataFrame(data=d)
         df = df[
@@ -1381,7 +1382,7 @@ def posterior_predictive_check_dynamic(
                 "actual_rt2",
                 "subj_idx",
                 "split_by",
-                # "trial",
+                "trial",
             ]
         ]
         for j in range(total_x_len):  # loop over total data
@@ -1581,7 +1582,7 @@ def posterior_predictive_check_dynamic(
             "actual_rt2",
             "subj_idx",
             "split_by",
-            # "trial",
+            "trial",
         ]
     ]
 
