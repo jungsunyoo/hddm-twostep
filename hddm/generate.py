@@ -1195,8 +1195,8 @@ def posterior_predictive_check_dynamic(
 
     Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
 
-    ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
-    ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
+    # ndt_counter_set = np.ones((comb(nstates,2,exact=True),1)) # first-stage MF Q-values
+    # ndt_counter_ind = np.ones((nstates, 1)) # first-stage MF Q-values
 
     for s in range(0, subjs):
         # if
@@ -1516,8 +1516,8 @@ def posterior_predictive_check_dynamic(
                 )
                 df.loc[j, "response2"] = data2.response[0]
                 df.loc[j, "rt2"] = data2.rt[0]
-            ndt_counter_set[s1s[j], 0] += 1
-            ndt_counter_ind[s2s[j], 0] += 1
+            # ndt_counter_set[s1s[j], 0] += 1
+            # ndt_counter_ind[s2s[j], 0] += 1
 
             # (ADDED 2023-05-17) Updating common/rare transition uncertainty (beta parameters)
             planets = state_combinations[s1s[j]]
