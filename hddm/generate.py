@@ -1171,7 +1171,7 @@ def posterior_predictive_check_dynamic(
     # w2 = kwargs.pop("w2", False)
     scaler = kwargs.pop("scaler", False)
     scaler2 = kwargs.pop("scaler_2", False)
-    # z_scaler = kwargs.pop("z_scaler", False)
+    z_scaler = kwargs.pop("z_scaler", False)
     
     pos_alpha = kwargs.pop("pos_alpha", False)
     alpha = kwargs.pop("alpha", False)
@@ -1402,17 +1402,17 @@ def posterior_predictive_check_dynamic(
                                         betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
                             mode_beta(alphaf(beta_success_ind[planets[1]]),
                                         betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]]) + \
-                    w_unc_ * np.array([[mode_beta(alphaf(beta_success_set[s1s[i]]),
-                                        betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
-                            1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
-                                            betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))],
-                            [1 - mode_beta(alphaf(beta_success_set[s1s[i]]),
-                                            betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
-                            mode_beta(alphaf(beta_success_set[s1s[i]]),
-                                        betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
+                    w_unc_ * np.array([[mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                        betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])),
+                            1 - mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                            betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]]))],
+                            [1 - mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                            betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])),
+                            mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                        betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]]))]])
 
-            alpha_b = alphaf(beta_success_set[s1s[i]])
-            beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+            alpha_b = alphaf(beta_success_set[s1s[j]])
+            beta_b = betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])
             var_tr_ = var_beta(alpha_b, beta_b)
 
             # then, add ind and then take the average
