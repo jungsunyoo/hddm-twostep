@@ -1480,11 +1480,11 @@ def posterior_predictive_check_dynamic(
             #     df.loc[j, "q_low_1"] = qs_mf[s1s[j], 0]
             # else:
             #     raise AssertionError("Either specify MB or MF")
-
+            v_ = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
 
             df.loc[j, "q_up_1"] = Qmb[1]
             df.loc[j, "q_low_1"] = Qmb[0]
-            df.loc[j, "sim_drift_1"] = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
+            df.loc[j, "sim_drift_1"] = v_
             df.loc[j, "sim_bias_1"] = z
             df.loc[j, "sim_ndt_1"] = t_
             df.loc[j, "actual_rt1"] = actual_rt1[j]
