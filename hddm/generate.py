@@ -1354,7 +1354,7 @@ def posterior_predictive_check_dynamic(
             # "feedback": feedback,
             "subj_idx": subj_idx,
             "split_by": split_by,
-            "trial": 1,
+            # "trial": 1,
         }
         df = pd.DataFrame(data=d)
         df = df[
@@ -1381,7 +1381,7 @@ def posterior_predictive_check_dynamic(
                 "actual_rt2",
                 "subj_idx",
                 "split_by",
-                "trial",
+                # "trial",
             ]
         ]
         for j in range(total_x_len):  # loop over total data
@@ -1581,7 +1581,7 @@ def posterior_predictive_check_dynamic(
             "actual_rt2",
             "subj_idx",
             "split_by",
-            "trial",
+            # "trial",
         ]
     ]
 
