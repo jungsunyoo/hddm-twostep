@@ -1102,6 +1102,39 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     # parameters added for two-step
 
 
+
+
+        # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
+
+
+    cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+
+
+    # cdef np.ndarray[double, ndim=2] qs_mf_success = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+    # cdef np.ndarray[double, ndim=2] qs_mf_n = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+
+    cdef np.ndarray[double, ndim=2] qs_mb_n = np.ones((nstates, 2)) * 2 # second-stage Q-values
+    cdef np.ndarray[double, ndim=2] qs_mb_success = np.ones((nstates, 2))  # second-stage Q-values
+
+    cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1))
+
+    cdef np.ndarray[double, ndim=2] memory_weight_tr_set = np.ones((comb(nstates,2,exact=True),1))
+    cdef np.ndarray[double, ndim=2] memory_weight_tr_ind = np.ones((nstates, 1))
+
+    cdef np.ndarray[double, ndim=2] memory_weight_val = np.ones((nstates, 2))
+
+    # JY added for uncertainty modeling
+    cdef np.ndarray[double, ndim=2] beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
+    cdef np.ndarray[double, ndim=2] beta_success_set = np.ones((comb(nstates,2,exact=True),1))
+
+    cdef np.ndarray[double, ndim=2] beta_n_ind = np.ones((nstates, 1)) * 2
+    cdef np.ndarray[double, ndim=2] beta_success_ind = np.ones((nstates,1))
+
+    cdef np.ndarray[double, ndim=1] counter = np.zeros(comb(nstates,2,exact=True))
+
+
     cdef np.ndarray[long, ndim=1] planets
 
     cdef np.ndarray[double, ndim=1] Qmb
@@ -1126,6 +1159,42 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     # unique represent # of conditions
     for j in range(unique.shape[0]):
         s = unique[j]
+
+
+
+        ####### 2023-08-03 INITIALIZING PARAMETERS FOR NEXT CONDITION ##### 
+        # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
+        if j>0:  # if in the second condition
+
+            qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+            qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
+
+
+            # cdef np.ndarray[double, ndim=2] qs_mf_success = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+            # cdef np.ndarray[double, ndim=2] qs_mf_n = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
+
+            qs_mb_n = np.ones((nstates, 2)) * 2 # second-stage Q-values
+            qs_mb_success = np.ones((nstates, 2))  # second-stage Q-values
+
+            ndt_counter_set = np.ones((comb(nstates,2,exact=True),1))
+            ndt_counter_ind = np.ones((nstates, 1))
+
+            memory_weight_tr_set = np.ones((comb(nstates,2,exact=True),1))
+            memory_weight_tr_ind = np.ones((nstates, 1))
+
+            memory_weight_val = np.ones((nstates, 2))
+
+            # JY added for uncertainty modeling
+            beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
+            beta_success_set = np.ones((comb(nstates,2,exact=True),1))
+
+            beta_n_ind = np.ones((nstates, 1)) * 2
+            beta_success_ind = np.ones((nstates,1))
+
+            counter = np.zeros(comb(nstates,2,exact=True))
+
+
+
         # select trials for current condition, identified by the split_by-array
         feedbacks = feedback[split_by == s]
         responses1 = response1[split_by == s]
@@ -1166,35 +1235,6 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
 
 
-        # cdef np.ndarray[double, ndim=1] qs = np.array([q, q])
-
-
-        cdef np.ndarray[double, ndim=2] qs_mf = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-        cdef np.ndarray[double, ndim=2] qs_mb = np.ones((nstates, 2))*q # second-stage Q-values
-
-
-        # cdef np.ndarray[double, ndim=2] qs_mf_success = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-        # cdef np.ndarray[double, ndim=2] qs_mf_n = np.ones((comb(nstates,2,exact=True),2))*q # first-stage MF Q-values
-
-        cdef np.ndarray[double, ndim=2] qs_mb_n = np.ones((nstates, 2)) * 2 # second-stage Q-values
-        cdef np.ndarray[double, ndim=2] qs_mb_success = np.ones((nstates, 2))  # second-stage Q-values
-
-        cdef np.ndarray[double, ndim=2] ndt_counter_set = np.ones((comb(nstates,2,exact=True),1))
-        cdef np.ndarray[double, ndim=2] ndt_counter_ind = np.ones((nstates, 1))
-
-        cdef np.ndarray[double, ndim=2] memory_weight_tr_set = np.ones((comb(nstates,2,exact=True),1))
-        cdef np.ndarray[double, ndim=2] memory_weight_tr_ind = np.ones((nstates, 1))
-
-        cdef np.ndarray[double, ndim=2] memory_weight_val = np.ones((nstates, 2))
-
-        # JY added for uncertainty modeling
-        cdef np.ndarray[double, ndim=2] beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
-        cdef np.ndarray[double, ndim=2] beta_success_set = np.ones((comb(nstates,2,exact=True),1))
-
-        cdef np.ndarray[double, ndim=2] beta_n_ind = np.ones((nstates, 1)) * 2
-        cdef np.ndarray[double, ndim=2] beta_success_ind = np.ones((nstates,1))
-
-        cdef np.ndarray[double, ndim=1] counter = np.zeros(comb(nstates,2,exact=True))
 
 
 
