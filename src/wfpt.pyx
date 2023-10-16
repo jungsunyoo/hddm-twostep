@@ -1191,6 +1191,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             beta_n_ind = np.ones((nstates, 1)) * 2
             beta_success_ind = np.ones((nstates,1))
 
+            beta_n_clone = np.ones((comb(nstates,2,exact=True),2)) * 2
+            beta_success_clone = np.ones((comb(nstates,2,exact=True),2))
+
             counter = np.zeros(comb(nstates,2,exact=True))
 
 
@@ -1345,8 +1348,24 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                                                       betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])),
                                         mode_beta(alphaf(beta_success_set[s1s[i]]),
                                                   betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]]))]])
-
-
+                    # 2023-10-16 changed for "cloned" version
+                    elif unc_hybrid == 5.00:
+                        Tm = (1-w_unc_) * np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                                        1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                                  betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                                       [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                                        mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                                  betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]]) + \
+                             w_unc_ * np.array([[mode_beta(alphaf(beta_success_clone[s1s[i], 0]),
+                                                  betaf(beta_n_clone[s1s[i], 0], beta_success_clone[s1s[i], 0])),
+                                        1 - mode_beta(alphaf(beta_success_clone[s1s[i], 0]),
+                                                      betaf(beta_n_clone[s1s[i], 0], beta_success_clone[s1s[i], 0]))],
+                                       [1 - mode_beta(alphaf(beta_success_clone[s1s[i], 1]),
+                                                      betaf(beta_n_clone[s1s[i], 1], beta_success_clone[s1s[i], 1])),
+                                        mode_beta(alphaf(beta_success_clone[s1s[i], 1]),
+                                                  betaf(beta_n_clone[s1s[i], 1], beta_success_clone[s1s[i], 1]))]])
                     if beta_ndt2 != 0.00: # if we estimate value with uncertainty
                         mode1_1 = mode_beta(alphaf(qs_mb_success[planets[0],0]),
                                             betaf(qs_mb_n[planets[0],0], qs_mb_success[planets[0],0]))
@@ -1505,7 +1524,34 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                             var_tr = w_unc_ * var_tr_ + (1-w_unc_) * var_tr__
 
+                        elif unc_hybrid == 5.00: # use the 'clone' version
+                            # alpha_b = alphaf(beta_success_set[s1s[i]])
+                            # beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
+                            # var_tr_ = var_beta(alpha_b, beta_b)
 
+                            # clone
+                            alpha_b = alphaf(beta_success_clone(s1s[i], 0))
+                            beta_b = betaf(beta_n_clone(s1s[i], 0), beta_success_clone(s1s[i], 0)) 
+                            var_tr_ = var_beta(alpha_b, beta_b)
+
+                            alpha_b = alphaf(beta_success_clone(s1s[i], 1))
+                            beta_b = betaf(beta_n_clone[s1s[i], 1], beta_success_clone(s1s[i], 1))
+                            var_tr_ += var_beta(alpha_b, beta_b)
+                            var_tr_ /= 2
+
+
+
+                            # then, add ind and then take the average
+                            alpha_b = alphaf(beta_success_ind[planets[0]])
+                            beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+                            var_tr__ = var_beta(alpha_b, beta_b)
+
+                            alpha_b = alphaf(beta_success_ind[planets[1]])
+                            beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+                            var_tr__ += var_beta(alpha_b, beta_b)
+                            var_tr__ /= 2
+
+                            var_tr = w_unc_ * var_tr_ + (1-w_unc_) * var_tr__
 
 
                     else:
@@ -1768,9 +1814,11 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
             chosen_state = planets[responses1[i]]
             beta_n_ind[chosen_state] += 1
             beta_n_set[s1s[i]] += 1
+            beta_n_clone[chosen_state, responses1[i]]
             if chosen_state == s2s[i]:
                 beta_success_ind[chosen_state] += 1
                 beta_success_set[s1s[i]] += 1
+                beta_success_clone[chosen_state, responses1[i]] += 1
             # Update mode of beta
 
 

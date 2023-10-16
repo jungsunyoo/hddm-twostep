@@ -133,7 +133,7 @@ class HDDMrl(HDDM):
                         std_value=1,
                     )
                 )
-            if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
+            if self.unc_hybrid == 'fourth' or self.unc_hybrid == 'fifth': # regressing both will need an additional parameter
                 knodes.update(
                     self._create_family_normal_non_centered(
                         "w_unc",
@@ -426,7 +426,7 @@ class HDDMrl(HDDM):
                         std_value=1,
                     )
                 )
-            if self.unc_hybrid == 'fourth': # regressing both will need an additional parameter
+            if self.unc_hybrid == 'fourth' or self.unc_hybrid == 'fifth': # regressing both will need an additional parameter
                 knodes.update(
                     self._create_family_normal(
                         "w_unc",
@@ -769,6 +769,9 @@ class HDDMrl(HDDM):
             elif self.unc_hybrid == 'fourth': # regress both within ndt1
                 wfpt_parents['unc_hybrid'] = 4.00
                 wfpt_parents['w_unc'] = knodes['w_unc_bottom']
+            elif self.unc_hybrid == 'fifth': # regress both within ndt1
+                wfpt_parents['unc_hybrid'] = 5.00
+                wfpt_parents['w_unc'] = knodes['w_unc_bottom']                
         else:
             wfpt_parents['unc_hybrid'] = 0.00
             wfpt_parents['w_unc'] = 0.00
