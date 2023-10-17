@@ -1132,6 +1132,9 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
     cdef np.ndarray[double, ndim=2] beta_n_ind = np.ones((nstates, 1)) * 2
     cdef np.ndarray[double, ndim=2] beta_success_ind = np.ones((nstates,1))
 
+    cdef np.ndarray[double, ndim=2] beta_n_clone = np.ones((comb(nstates,2,exact=True),2)) * 2
+    cdef np.ndarray[double, ndim=2] beta_success_clone = np.ones((comb(nstates,2,exact=True),2))   
+
     cdef np.ndarray[double, ndim=1] counter = np.zeros(comb(nstates,2,exact=True))
 
 
