@@ -1528,26 +1528,14 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                             var_tr = w_unc_ * var_tr_ + (1-w_unc_) * var_tr__
 
                         elif unc_hybrid == 5.00: # use the 'clone' version
-                            # alpha_b = alphaf(beta_success_set[s1s[i]])
-                            # beta_b = betaf(beta_n_set[s1s[i]], beta_success_set[s1s[i]])
-                            # var_tr_ = var_beta(alpha_b, beta_b)
 
-                            # clone
-                            #alpha_b = alphaf(beta_success_clone[s1s[i], 0])
-                            #beta_b = betaf(beta_n_clone[s1s[i], 0]), beta_success_clone[s1s[i], 0]) 
-                            #var_tr_ = var_beta(alpha_b, beta_b)
-
-                            #alpha_b = alphaf(beta_success_clone[s1s[i], 1])
-                            #beta_b = betaf(beta_n_clone[s1s[i], 1], beta_success_clone[s1s[i], 1])
-                            #var_tr_ += var_beta(alpha_b, beta_b)
-                            #var_tr_ /= 2
 
                             alpha_b = alphaf(beta_success_clone[s1s[i], 0])
                             beta_b = betaf(beta_n_clone[s1s[i], 0], beta_success_clone[s1s[i], 0])
                             var_tr_ = var_beta(alpha_b, beta_b)
 
                             alpha_b = alphaf(beta_success_clone[s1s[i], 1])
-                            beta_b = betaf(beta_n_clone[s1s[i], 1], beta_success_clone[s1s[i], 1)
+                            beta_b = betaf(beta_n_clone[s1s[i], 1], beta_success_clone[s1s[i], 1])
                             var_tr_ += var_beta(alpha_b, beta_b)
                             var_tr_ /= 2
 
