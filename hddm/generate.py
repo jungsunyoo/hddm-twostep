@@ -1648,20 +1648,13 @@ def simulation(
     a_2 = kwargs.pop("a_2", 1) # return 1 as default (if not otherwise specified)
     t = kwargs.pop("t", False)
     t_2 = kwargs.pop("t_2", False)
-    v0 = kwargs.pop("v0", False)
-    v1 = kwargs.pop("v1", False)
-    v2 = kwargs.pop("v2", False)
-    v_interaction = kwargs.pop("v_interaction", False)
     v_2 = kwargs.pop("v_2", False)
     z = kwargs.pop("z", 0.5) # return 0.5 as default (if not otherwise specified)
-    z0 = kwargs.pop("z0", False)
-    z1 = kwargs.pop("z1", False)
-    z2 = kwargs.pop("z2", False)
-    z_interaction = kwargs.pop("z_interaction", False)
     z_2 = kwargs.pop("z_2", 0.5)
     lambda_ = kwargs.pop("lambda_", False)  # float("nan")
     gamma = kwargs.pop("gamma", False)
     w = kwargs.pop("w", False)
+    w_unc = kwargs.pop("w_unc", False)
     w2 = kwargs.pop("w2", False)
     scaler = kwargs.pop("scaler", False)
     scaler2 = kwargs.pop("scaler_2", False)
@@ -1670,7 +1663,6 @@ def simulation(
     alpha = kwargs.pop("alpha", False)
     alpha2 = kwargs.pop("alpha2", False)
     beta_ndt = kwargs.pop("beta_ndt", False)
-    beta_ndt2 = kwargs.pop("beta_ndt2", False)
     all_data = []
 
     tg = t
@@ -1700,6 +1692,7 @@ def simulation(
     # states_total
     all_planets = matlib.repmat(states_total, int(ntrials / len(states_total)), 1)
     np.random.shuffle(all_planets)
+    s1s = all_planets[:,2]
 
     for s in range(0, subjs):
         # if
@@ -1837,6 +1830,15 @@ def simulation(
 
         rewards = generate_rewards(ntrials, bounds, sd, nactions, nstates)
 
+
+        # JY added on 2023-06-10
+        beta_n_ind = np.ones((nstates, 1)) * 2
+        beta_success_ind = np.ones((nstates,1))
+        beta_n_set = np.ones((comb(nstates,2,exact=True),1)) * 2
+        beta_success_set = np.ones((comb(nstates,2,exact=True),1))
+        # trial = np.tile([0], n)
+
+
         for j in range(ntrials):  # loop over total data
             df.loc[j, "trial"] = j + 1
 
@@ -1861,14 +1863,60 @@ def simulation(
                 z_ = dtq * z_scaler
                 sig = 1 / (1 + np.exp(-z_))
 
-            if v0 or v1 or v2 or v_interaction:
-                v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-            if z0 or z1 or z2 or z_interaction:
-                z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
-                sig = 1 / (1 + np.exp(-z_))
-            if beta_ndt or beta_ndt2:
-                t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[planets[2], 0]) * beta_ndt2 + t
+            # if v0 or v1 or v2 or v_interaction:
+                # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
+            v_ = scaler
+            # if z0 or z1 or z2 or z_interaction:
+                # z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
+            # sig = 1 / (1 + np.exp(-z_))
+            z_ = z
+            w_unc_ = w_unc
+            # if beta_ndt or beta_ndt2:
+                # t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[planets[2], 0]) * beta_ndt2 + t
 
+            Tm = (1-w_unc_) * np.array([[mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                        betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])),
+                            1 - mode_beta(alphaf(beta_success_ind[planets[0]]),
+                                        betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]]))],
+                            [1 - mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])),
+                            mode_beta(alphaf(beta_success_ind[planets[1]]),
+                                        betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]]))]]) + \
+                    w_unc_ * np.array([[mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                        betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])),
+                            1 - mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                            betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]]))],
+                            [1 - mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                            betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])),
+                            mode_beta(alphaf(beta_success_set[s1s[j]]),
+                                        betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]]))]])
+            Tm = np.squeeze(Tm)
+            alpha_b = alphaf(beta_success_set[s1s[j]])
+            beta_b = betaf(beta_n_set[s1s[j]], beta_success_set[s1s[j]])
+            var_tr_ = var_beta(alpha_b, beta_b)
+
+            # then, add ind and then take the average
+            alpha_b = alphaf(beta_success_ind[planets[0]])
+            beta_b = betaf(beta_n_ind[planets[0]], beta_success_ind[planets[0]])
+            var_tr__ = var_beta(alpha_b, beta_b)
+
+            alpha_b = alphaf(beta_success_ind[planets[1]])
+            beta_b = betaf(beta_n_ind[planets[1]], beta_success_ind[planets[1]])
+            var_tr__ += var_beta(alpha_b, beta_b)
+            var_tr__ /= 2
+
+            var_tr = w_unc_ * var_tr_ + (1-w_unc_) * var_tr__
+
+            t_ = t + beta_ndt * var_tr
+
+
+
+
+
+
+
+
+            # t_ = t + beta_ndt * 
             data1, params1 = hddm.generate.gen_rand_data(
                 {"a": a, "t": t_, "v": v_, "z": sig},
                 subjs=1, size=n_simulation
@@ -1906,6 +1954,18 @@ def simulation(
 
             ndt_counter_set[planets[2], 0] += 1
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
+
+            # (ADDED 2023-05-17) Updating common/rare transition uncertainty (beta parameters)
+            # planets = state_combinations[s1s[j]]
+            
+            chosen_state = planets[df.loc[j, "response1"]]
+            beta_n_ind[chosen_state] += 1
+            beta_n_set[s1s[j]] += 1
+            if chosen_state == s2s[j]:
+                beta_success_ind[chosen_state] += 1
+                beta_success_set[s1s[j]] += 1
+
+
             # Update test fold
             dtQ1 = qs_mb[int(df.loc[j, "state2"]), int(data2.response[0])] - qs_mf[
                 int(planets[2]), int(data1.response[0])]  # delta stage 1
@@ -1946,6 +2006,9 @@ def simulation(
     ]
 
     return all_data
+
+
+
 
 # For now, only one participant only
 def cross_validation(
