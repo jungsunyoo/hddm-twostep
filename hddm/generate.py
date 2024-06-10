@@ -1942,12 +1942,12 @@ def simulation(
                 # print("feedback: {}".format(df.loc[j, "feedback"]))
 
             ndt_counter_set[planets[2], 0] += 1
-            print(int(df.loc[j, "state2"]))
+            # print(int(df.loc[j, "state2"]))
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
-            print(data1.response[0].astype(int))
-            print(df.loc[j, "response1"])
-            print(planets[int(df.loc[j, "response1"])])
-            # chosen_state = planets[data1.response[0].astype(int)]
+            # print(data1.response[0].astype(int))
+            # print(df.loc[j, "response1"])
+            # print(planets[int(df.loc[j, "response1"])])
+            chosen_state = planets[data1.response[0].astype(int)]
             beta_n_ind[chosen_state] += 1
             beta_n_set[s1s[j]] += 1
             if chosen_state == state_2nd:
