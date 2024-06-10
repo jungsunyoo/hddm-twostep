@@ -1942,6 +1942,7 @@ def simulation(
                 # print("feedback: {}".format(df.loc[j, "feedback"]))
 
             ndt_counter_set[planets[2], 0] += 1
+            print(int(df.loc[j, "state2"])
             ndt_counter_ind[int(df.loc[j, "state2"]), 0] += 1
 
             # (ADDED 2023-05-17) Updating common/rare transition uncertainty (beta parameters)
