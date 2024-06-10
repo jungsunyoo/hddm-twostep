@@ -1442,44 +1442,6 @@ def posterior_predictive_check_dynamic(
             dtq_mb = Qmb[1] - Qmb[0]
             dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
 
-
-
-
-
-
-
-
-            # if w: # use w scaling for drift rate
-            #     qs = w * Qmb + (1 - w) * qs_mf[s1s[j], :]  # Update for 1st trial
-            #     dtq = qs[1] - qs[0]
-            #     v_ = dtq * scaler
-            # if w2: # use w scaling for starting point
-            #     qs = w2 * Qmb + (1 - w2) * qs_mf[s1s[j], :]  # Update for 1st trial
-            #     dtq = qs[1] - qs[0]
-            #     z_ = dtq * z_scaler
-            #     sig = 1 / (1 + np.exp(-z_))
-
-            # if v0 or v1 or v2 or v_interaction:
-            #     v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-            # # else:
-            # #     v_ = v
-            # if z0 or z1 or z2 or z_interaction:
-            #     z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
-            #     sig = 1 / (1 + np.exp(-z_))
-            # else:
-            #     sig  = z
-            # if beta_ndt or beta_ndt2:
-            #     t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[s1s[j], 0]) * beta_ndt2 + t
-            # else:
-            #     t_ = t
-            # if v1 and not v2: # only simulate MB Q VALUES
-            #     df.loc[j, "q_up_1"] = Qmb[1]
-            #     df.loc[j, "q_low_1"] = Qmb[0]
-            # elif v2 and not v1: # only simulate MF Q VALUES
-            #     df.loc[j, "q_up_1"] = qs_mf[s1s[j], 1]
-            #     df.loc[j, "q_low_1"] = qs_mf[s1s[j], 0]
-            # else:
-            #     raise AssertionError("Either specify MB or MF")
             v_ = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
 
             df.loc[j, "q_up_1"] = Qmb[1]
@@ -1909,7 +1871,14 @@ def simulation(
 
             t_ = t + beta_ndt * var_tr
 
+            Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
 
+            # Qmb = np.dot(Tm, [np.max(qs_mb[planets[0], :]), np.max(qs_mb[planets[1], :])])
+
+            dtq_mb = Qmb[1] - Qmb[0]
+            dtq_mf = qs_mf[s1s[j], 1] - qs_mf[s1s[j], 0]
+
+            v_ = dtq_mb * scaler #(df.loc[j, "q_up"] - df.loc[j, "q_low"]) * (scaler)
 
 
 
