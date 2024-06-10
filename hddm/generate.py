@@ -1627,18 +1627,37 @@ def simulation(
     beta_ndt = kwargs.pop("beta_ndt", False)
     all_data = []
 
-    tg = t
-    ag = a
-    tg2 = t_2
-    ag2 = a_2
+    # tg = t
+    # ag = a
+    # tg2 = t_2
+    # ag2 = a_2
 
-    alphag = alpha
-    alphag2 = alpha2
+    # alphag = alpha
+    # alphag2 = alpha2
 
-    pos_alphag = pos_alpha
-    scalerg = scaler
-    scalerg2 = scaler2
-    z_scalerg = z_scaler
+    # pos_alphag = pos_alpha
+    # scalerg = scaler
+    # scalerg2 = scaler2
+    # z_scalerg = z_scaler
+
+    if alpha:
+        alfa = (2.718281828459 ** alpha) / (1 + 2.718281828459 ** alpha)
+    if gamma:
+        gamma_ = (2.718281828459 ** gamma) / (1 + 2.718281828459 ** gamma)
+    if alpha2:
+        alfa2 = (2.718281828459 ** alpha2) / (1 + 2.718281828459 ** alpha2)
+    else:
+        alfa2 = alfa
+    if lambda_:
+        lambda__ = (2.718281828459 ** lambda_) / (1 + 2.718281828459 ** lambda_)
+    # if w:
+    #     w = (2.718281828459 ** w) / (1 + 2.718281828459 ** w)
+    if w_unc:
+        w_unc_ = (2.718281828459 ** w_unc) / (1 + 2.718281828459 ** w_unc)
+    if z_2:
+        z_2_ = (2.718281828459 ** z_2) / (1 + 2.718281828459 ** z_2)
+    # if w2:
+    #     w2 = (2.718281828459 ** w2) / (1 + 2.718281828459 ** w2)
 
     Tm = np.array([[0.7, 0.3], [0.3, 0.7]])  # transition matrix
 
@@ -1658,95 +1677,95 @@ def simulation(
 
     for s in range(0, subjs):
         # if
-        t = (
-            np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
-            if subjs > 1
-            else tg
-        )
+        # t = (
+        #     np.maximum(0.05, np.random.normal(loc=tg, scale=0.05, size=1))
+        #     if subjs > 1
+        #     else tg
+        # )
 
-        a = (
-            np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
-            if subjs > 1
-            else ag
-        )
+        # a = (
+        #     np.maximum(0.05, np.random.normal(loc=ag, scale=0.15, size=1))
+        #     if subjs > 1
+        #     else ag
+        # )
 
-        alpha = (
-            np.minimum(
-                np.minimum(
-                    np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
-                    alphag + alphag,
-                ),
-                1,
-            )
-            if subjs > 1
-            else alphag
-        )
+        # alpha = (
+        #     np.minimum(
+        #         np.minimum(
+        #             np.maximum(0.001, np.random.normal(loc=alphag, scale=0.05, size=1)),
+        #             alphag + alphag,
+        #         ),
+        #         1,
+        #     )
+        #     if subjs > 1
+        #     else alphag
+        # )
 
-        scaler = (
-            np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
-        )
-        z_scaler = (
-            np.random.normal(loc=z_scalerg, scale=0.25, size=1) if subjs > 1 else z_scalerg
-        )
+        # scaler = (
+        #     np.random.normal(loc=scalerg, scale=0.25, size=1) if subjs > 1 else scalerg
+        # )
+        # z_scaler = (
+        #     np.random.normal(loc=z_scalerg, scale=0.25, size=1) if subjs > 1 else z_scalerg
+        # )
 
-        if np.isnan(pos_alpha):
-            pos_alfa = alpha
-        else:
-            pos_alfa = (
-                np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
-                if subjs > 1
-                else pos_alphag
-            )
+        # if np.isnan(pos_alpha):
+        #     pos_alfa = alpha
+        # else:
+        #     pos_alfa = (
+        #         np.maximum(0.001, np.random.normal(loc=pos_alphag, scale=0.05, size=1))
+        #         if subjs > 1
+        #         else pos_alphag
+        #     )
         # n = size
         # n = ntrials #len(x)
         # if two_stage:
-        if t_2:
-            t_2 = (
-                np.maximum(0.05, np.random.normal(loc=tg2, scale=0.05, size=1))
-                if subjs > 1
-                else tg2
-            )
-        if a_2:
-            a_2 = (
-                np.maximum(0.05, np.random.normal(loc=ag2, scale=0.15, size=1))
-                if subjs > 1
-                else ag2
-            )
-        if alpha2:
-            alpha2 = (
-                np.minimum(
-                    np.minimum(
-                        np.maximum(0.001, np.random.normal(loc=alphag2, scale=0.05, size=1)),
-                        alphag + alphag,
-                    ),
-                    1,
-                )
-                if subjs > 1
-                else alphag2
-            )
-        if scaler2:
-            scaler2 = (
-                np.random.normal(loc=scalerg2, scale=0.25, size=1) if subjs > 1 else scalerg2
-            )
+        # if t_2:
+        #     t_2 = (
+        #         np.maximum(0.05, np.random.normal(loc=tg2, scale=0.05, size=1))
+        #         if subjs > 1
+        #         else tg2
+        #     )
+        # if a_2:
+        #     a_2 = (
+        #         np.maximum(0.05, np.random.normal(loc=ag2, scale=0.15, size=1))
+        #         if subjs > 1
+        #         else ag2
+        #     )
+        # if alpha2:
+        #     alpha2 = (
+        #         np.minimum(
+        #             np.minimum(
+        #                 np.maximum(0.001, np.random.normal(loc=alphag2, scale=0.05, size=1)),
+        #                 alphag + alphag,
+        #             ),
+        #             1,
+        #         )
+        #         if subjs > 1
+        #         else alphag2
+        #     )
+        # if scaler2:
+        #     scaler2 = (
+        #         np.random.normal(loc=scalerg2, scale=0.25, size=1) if subjs > 1 else scalerg2
+        #     )
 
 
         qs_mf = np.ones((comb(nstates, 2, exact=True), 2)) * q  # first-stage MF Q-values
         qs_mb = np.ones((nstates, 2)) * q  # second-stage Q-values
 
-        if alpha:
-            alfa = alpha
-        if gamma:
-            gamma_ = gamma
-        if alpha2:
-            alfa2 = alpha2
-        else:
-            alfa2 = alfa
-        if lambda_:
-            lambda__ = lambda_
-        if w:
-            w = w
-        if w2:
-            w2 = w2
+        # if alpha:
+        #     alfa = alpha
+        # if gamma:
+        #     gamma_ = gamma
+        # if alpha2:
+        #     alfa2 = alpha2
+        # else:
+        #     alfa2 = alfa
+        # if lambda_:
+        #     lambda__ = lambda_
+        # if w:
+        #     w = w
+        # if w2:
+        #     w2 = w2
 
         response1 = np.tile([0.5], ntrials)
         response2 = np.tile([0.5], ntrials)
@@ -1815,23 +1834,24 @@ def simulation(
             dtq_mb = Qmb[1] - Qmb[0]
             dtq_mf = qs_mf[planets[2], 1] - qs_mf[planets[2], 0]
 
-            if w: # use w scaling for drift rate
-                qs = w * Qmb + (1 - w) * qs_mf[planets[2], :]  # Update for 1st trial
-                dtq = qs[1] - qs[0]
-                v_ = dtq * scaler
-            if w2: # use w scaling for starting point
-                qs = w2 * Qmb + (1 - w2) * qs_mf[planets[2], :]  # Update for 1st trial
-                dtq = qs[1] - qs[0]
-                z_ = dtq * z_scaler
-                sig = 1 / (1 + np.exp(-z_))
+            # if w: # use w scaling for drift rate
+            #     qs = w * Qmb + (1 - w) * qs_mf[planets[2], :]  # Update for 1st trial
+            #     dtq = qs[1] - qs[0]
+            #     v_ = dtq * scaler
+            # if w2: # use w scaling for starting point
+            #     qs = w2 * Qmb + (1 - w2) * qs_mf[planets[2], :]  # Update for 1st trial
+            #     dtq = qs[1] - qs[0]
+            #     z_ = dtq * z_scaler
+            #     sig = 1 / (1 + np.exp(-z_))
 
             # if v0 or v1 or v2 or v_interaction:
                 # v_ = v0 + (dtq_mb * v1) + (dtq_mf * v2) + (v_interaction * dtq_mb * dtq_mf)
-            v_ = scaler
+            # v_ = scaler
             # if z0 or z1 or z2 or z_interaction:
                 # z_ = z0 + (dtq_mb * z1) + (dtq_mf * z2) + (z_interaction * dtq_mb * dtq_mf)
             # sig = 1 / (1 + np.exp(-z_))
-            z_ = z
+            # z_ = z
+            sig = z
             w_unc_ = w_unc
             # if beta_ndt or beta_ndt2:
                 # t_ = ((np.log(ndt_counter_ind[planets[0], 0]) + np.log(ndt_counter_ind[planets[1], 0])) / 2) * beta_ndt + np.log(ndt_counter_set[planets[2], 0]) * beta_ndt2 + t
@@ -1907,7 +1927,7 @@ def simulation(
                 dtq = qs[1] - qs[0]
                 # print("dtq: {}".format(dtq))
                 v_ = dtq * v_2
-                sig = z_2
+                sig = z_2_
                 # print("a:{}, t:{}, v:{}, z:{}".format(a_2, t_2, v_, sig))
                 data2, params2 = hddm.generate.gen_rand_data(
                     {"a": a_2, "t": t_2, "v": v_, "z": sig},
