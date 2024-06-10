@@ -1946,8 +1946,8 @@ def simulation(
 
             # (ADDED 2023-05-17) Updating common/rare transition uncertainty (beta parameters)
             # planets = state_combinations[s1s[j]]
-            print(df.loc[j, "response1"])
-            chosen_state = planets[int(df.loc[j, "response1"])]
+            # print(df.loc[j, "response1"])
+            chosen_state = planets[data1.response[0].astype(int)]
             beta_n_ind[chosen_state] += 1
             beta_n_set[s1s[j]] += 1
             if chosen_state == state_2nd:
