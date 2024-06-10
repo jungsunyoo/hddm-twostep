@@ -1594,6 +1594,7 @@ def generate_rewards(ntrials, bounds, sd, choices, nstates):
 # ntrials, bounds, sd, choices, nstates
 def simulation(
         nstates,
+        seed,
         bounds = [0,1],
         sd = 0.025,
         # choices = 2,
@@ -1626,7 +1627,7 @@ def simulation(
     alpha2 = kwargs.pop("alpha2", False)
     beta_ndt = kwargs.pop("beta_ndt", False)
     all_data = []
-
+    np.random.seed(seed)
     # tg = t
     # ag = a
     # tg2 = t_2
