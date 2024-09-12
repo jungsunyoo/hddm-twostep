@@ -1676,14 +1676,14 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
                         #         z_2_ = 1 / (1 + np.exp(-(v_ * z_sigma + z_sigma2)))
 
                         t_2_ = t if t_2 == 100.00 else t_2
-                        if beta_ndt2 != 0.00: # if we estimate value with uncertainty
-                            mode1 = mode_beta(alphaf(qs_mb_success[s2s[i], 0]),
-                                      betaf(qs_mb_n[s2s[i], 0], qs_mb_success[s2s[i], 0]))
-                            mode2 = mode_beta(alphaf(qs_mb_success[s2s[i], 1]),
-                                      betaf(qs_mb_n[s2s[i], 1], qs_mb_success[s2s[i], 1]))
-                            qs = [mode1, mode2]
-                        else:
-                            qs = qs_mb[s2s[i], :]
+                        #if beta_ndt2 != 0.00: # if we estimate value with uncertainty
+                        #    mode1 = mode_beta(alphaf(qs_mb_success[s2s[i], 0]),
+                        #              betaf(qs_mb_n[s2s[i], 0], qs_mb_success[s2s[i], 0]))
+                        #    mode2 = mode_beta(alphaf(qs_mb_success[s2s[i], 1]),
+                        #              betaf(qs_mb_n[s2s[i], 1], qs_mb_success[s2s[i], 1]))
+                        #    qs = [mode1, mode2]
+                        #else:
+                        qs = qs_mb[s2s[i], :]
                             # dtq = qs[1] - qs[0]
 
 
