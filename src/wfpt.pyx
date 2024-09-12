@@ -1583,7 +1583,7 @@ def wiener_like_rlddm_uncertainty(np.ndarray[double, ndim=1] x1, # 1st-stage RT
 
                     # 2023-01-28: regress with trialnum
                     if beta_ndt2 != 0.00: 
-                        var_val = i # trial number; to regress out the linear effect
+                        var_val = np.log(i+1) # trial number; to regress out the linear effect
                     else: 
                         var_val = 0 # exception handling
 
