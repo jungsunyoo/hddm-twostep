@@ -1961,7 +1961,7 @@ def simulation(
             chosen_state = planets[df.loc[j, "response1"]]
             beta_n_ind[chosen_state] += 1
             beta_n_set[s1s[j]] += 1
-            if chosen_state == state_2nd:
+            if chosen_state == s2s[j]:
                 beta_success_ind[chosen_state] += 1
                 beta_success_set[s1s[j]] += 1
 
