@@ -297,27 +297,31 @@ class HDDMrl(HDDM):
                 #     if self.v_qmb: # == 'mb': # just use MB Qvalues
                 if self.v1:
                     knodes.update(
-                        self._create_family_normal_non_centered(
+                        self._create_family_trunc_normal(
+                        # self._create_family_normal_non_centered(
                             "v1",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=1,
+                            lower=1e-3, upper=1e3, value=0.01
+                            # value=0,
+                            # g_mu=0.2,
+                            # g_tau=3 ** -2,
+                            # std_lower=1e-10,
+                            # std_upper=10,
+                            # std_value=1,
                         )
                     )
                     # else:
                 if self.v2:
                     knodes.update(
-                        self._create_family_normal_non_centered(
+                        self._create_family_trunc_normal(
+                        # self._create_family_normal_non_centered(
                             "v2",
-                            value=0,
-                            g_mu=0.2,
-                            g_tau=3 ** -2,
-                            std_lower=1e-10,
-                            std_upper=10,
-                            std_value=1,
+                            lower=1e-3, upper=1e3, value=0.01
+                            # value=0,
+                            # g_mu=0.2,
+                            # g_tau=3 ** -2,
+                            # std_lower=1e-10,
+                            # std_upper=10,
+                            # std_value=1,
                         )
                     )
 
@@ -571,14 +575,20 @@ class HDDMrl(HDDM):
                     )
                 if self.v1:
                     knodes.update(
-                        self._create_family_normal_normal_hnormal(
-                            "v1", value=2, g_mu=2, g_tau=3 ** -2, std_std=2 # informative prior
+                        self._create_family_trunc_normal(
+                        # self._create_family_normal_normal_hnormal(
+                            "v1", 
+                            lower=1e-3, upper=1e3, value=0.01
+                            # value=2, g_mu=2, g_tau=3 ** -2, std_std=2 # informative prior
                         )
                     )
                 if self.v2:
                     knodes.update(
-                        self._create_family_normal_normal_hnormal(
-                            "v2", value=2, g_mu=2, g_tau=3 ** -2, std_std=2 # informative prior
+                        self._create_family_trunc_normal(
+                        # self._create_family_normal_normal_hnormal(
+                            "v2", 
+                            lower=1e-3, upper=1e3, value=0.01
+                            # value=2, g_mu=2, g_tau=3 ** -2, std_std=2 # informative prior
                         )
                     )
 
